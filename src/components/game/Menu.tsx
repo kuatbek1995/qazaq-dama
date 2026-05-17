@@ -291,9 +291,21 @@ export function Menu({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
-        className="mt-16 text-xs text-ink-soft/50 text-center"
+        className="mt-16 flex flex-col items-center gap-1.5 text-xs text-ink-soft/60 text-center"
       >
-        {t("menu.footer")}
+        <div className="flex items-center gap-1.5">
+          <span className="text-base leading-none">🇰🇿</span>
+          <span>{t("menu.footer.made")}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#dc1f2a] text-white text-[8px] font-bold leading-none"
+            aria-hidden
+          >
+            in!
+          </span>
+          <span>{t("menu.footer.incubator")}</span>
+        </div>
       </motion.div>
 
       <AnimatePresence>
