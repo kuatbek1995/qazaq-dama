@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bot, Users, Link2, Trophy, Crown, Palette, Sparkles, Zap, Cpu, MapPin, User } from "lucide-react";
+import { Bot, Users, Link2, Trophy, Crown, Globe, LogOut, Palette, Sparkles, Zap, Cpu, MapPin, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { Difficulty } from "@/lib/checkers/types";
@@ -41,7 +41,31 @@ export function Menu({
   const [showPro, setShowPro] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const langWasForced = useRef(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showProfile) return;
+    const handler = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfile(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showProfile]);
+
+  const handleLogout = () => {
+    if (!confirm(t("menu.profile.logout.confirm"))) return;
+    try {
+      localStorage.removeItem("qazaq-dama:identity-v1");
+    } catch {
+      // ignore
+    }
+    setShowProfile(false);
+    window.location.reload();
+  };
 
   useEffect(() => {
     setIdentity(loadIdentity());
@@ -71,42 +95,108 @@ export function Menu({
   const isPro = pro !== null;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 ornament-bg relative">
-      {/* Top-right: lang + identity + Pro + sound */}
+      {/* Top-right: sound + profile + Pro */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
         <SoundToggle />
-        <button
-          onClick={() => setShowLang(true)}
-          aria-label="Change language"
-          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 border border-white/10 hover:border-gold/40 hover:bg-white/10 transition-all text-base leading-none"
-          title={LOCALE_INFO[locale].nativeName}
-        >
-          <span>{LOCALE_INFO[locale].flag}</span>
-        </button>
-        <button
-          onClick={() => setShowIdentity(true)}
-          className={cn(
-            "px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border transition-all flex items-center gap-1.5 hover:bg-white/10",
-            isPro
-              ? "border-gold/50 text-ink hover:border-gold"
-              : "border-white/10 text-ink-soft hover:border-gold/40 hover:text-ink",
-          )}
-        >
-          {isPro && <Crown className="w-3 h-3 text-gold-bright" fill="currentColor" fillOpacity={0.3} />}
-          {identity ? (
-            <>
-              {!isPro && <User className="w-3 h-3" />}
-              <span>{identity.nickname}</span>
-              <span className="text-ink-soft/60">·</span>
-              <MapPin className="w-3 h-3" />
-              <span>{identity.city}</span>
-            </>
-          ) : (
-            <>
-              {!isPro && <User className="w-3 h-3" />}
-              {t("menu.identity.name")}
-            </>
-          )}
-        </button>
+        <div ref={profileRef} className="relative">
+          <button
+            onClick={() => setShowProfile((o) => !o)}
+            aria-label={t("menu.profile.menu")}
+            className={cn(
+              "relative w-9 h-9 rounded-full flex items-center justify-center bg-white/5 border transition-all hover:bg-white/10",
+              isPro
+                ? "border-gold/50 hover:border-gold"
+                : "border-white/10 hover:border-gold/40",
+              showProfile && "bg-white/10 border-gold/60",
+            )}
+          >
+            {identity ? (
+              <span className="text-xs font-bold text-ink uppercase">
+                {identity.nickname.charAt(0)}
+              </span>
+            ) : (
+              <User className="w-4 h-4 text-ink-soft" />
+            )}
+            {isPro && (
+              <Crown
+                className="absolute -top-1 -right-1 w-3.5 h-3.5 text-gold-bright bg-[#0c1729] rounded-full p-0.5"
+                fill="currentColor"
+                fillOpacity={0.3}
+              />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {showProfile && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full right-0 mt-2 w-60 rounded-2xl bg-gradient-to-br from-[#1a2540] via-[#0c1729] to-[#050913] border border-gold/30 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)] overflow-hidden z-50"
+              >
+                {identity && (
+                  <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center text-xs font-bold text-gold-bright uppercase">
+                      {identity.nickname.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-ink truncate flex items-center gap-1">
+                        {isPro && (
+                          <Crown
+                            className="w-3 h-3 text-gold-bright flex-shrink-0"
+                            fill="currentColor"
+                            fillOpacity={0.3}
+                          />
+                        )}
+                        {identity.nickname}
+                      </div>
+                      <div className="text-[11px] text-ink-soft flex items-center gap-1">
+                        <MapPin className="w-2.5 h-2.5" />
+                        {identity.city}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowProfile(false);
+                    setShowLang(true);
+                  }}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-4 h-4 text-ink-soft" />
+                    <span className="text-ink">{t("menu.profile.language")}</span>
+                  </div>
+                  <span className="text-base leading-none">{LOCALE_INFO[locale].flag}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowProfile(false);
+                    setShowIdentity(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-sm border-t border-white/5"
+                >
+                  <User className="w-4 h-4 text-ink-soft" />
+                  <span className="text-ink">{t("menu.profile.identity")}</span>
+                </button>
+
+                {identity && (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 transition-colors text-sm border-t border-white/5"
+                  >
+                    <LogOut className="w-4 h-4 text-red-300" />
+                    <span className="text-red-300">{t("menu.profile.logout")}</span>
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         {isPro ? (
           <button
             onClick={() => setShowThemes(true)}

@@ -38,6 +38,11 @@ const en: Dict = {
   "menu.identity.name": "Sign in",
   "menu.pro.upgrade": "Upgrade to Pro",
   "menu.pro.themes": "Themes",
+  "menu.profile.menu": "Profile menu",
+  "menu.profile.language": "Language",
+  "menu.profile.identity": "Name & city",
+  "menu.profile.logout": "Log out",
+  "menu.profile.logout.confirm": "Clear your name and city from this device?",
 
   // Menu — hero
   "menu.subtitle": "Next-gen checkers. From Kazakhstan to the world.",
@@ -220,6 +225,11 @@ const ru: Dict = {
   "menu.identity.name": "Назваться",
   "menu.pro.upgrade": "Получить Pro",
   "menu.pro.themes": "Темы",
+  "menu.profile.menu": "Меню профиля",
+  "menu.profile.language": "Язык",
+  "menu.profile.identity": "Имя и город",
+  "menu.profile.logout": "Выйти из игры",
+  "menu.profile.logout.confirm": "Очистить имя и город на этом устройстве?",
 
   "menu.subtitle": "Шашки нового поколения. Қазақстаннан әлемге.",
   "menu.subline": "3-минутные дуэли · Игра с ИИ · Мультиплеер по ссылке · Лидерборд городов",
@@ -390,6 +400,11 @@ const kk: Dict = {
   "menu.identity.name": "Кіру",
   "menu.pro.upgrade": "Pro нұсқасына өту",
   "menu.pro.themes": "Тақырыптар",
+  "menu.profile.menu": "Профиль мәзірі",
+  "menu.profile.language": "Тіл",
+  "menu.profile.identity": "Аты мен қала",
+  "menu.profile.logout": "Шығу",
+  "menu.profile.logout.confirm": "Бұл құрылғыдағы атыңды және қалаңды өшірейік пе?",
 
   "menu.subtitle": "Жаңа буын дойбысы. Қазақстаннан әлемге.",
   "menu.subline": "3 минуттық дуэль · ЖИ-мен ойын · Сілтеме арқылы ойын · Қалалар рейтингі",
