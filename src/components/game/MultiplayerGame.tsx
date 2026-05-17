@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, Copy, Flag, Link2, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Flag, Link2, Loader2, User } from "lucide-react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   applyMove,
@@ -14,6 +14,8 @@ import type { Color, Coord, GameState, Move } from "@/lib/checkers/types";
 import { Board } from "./Board";
 import { GameSidebar } from "./GameSidebar";
 import { EndScreen } from "./EndScreen";
+import { IdentityModal } from "@/components/IdentityModal";
+import { loadIdentity, type Identity } from "@/lib/identity";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 const TIMER_BUDGET_MS = 3 * 60 * 1000;
@@ -37,6 +39,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const [timer, setTimer] = useState({ white: TIMER_BUDGET_MS, black: TIMER_BUDGET_MS });
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [myIdentity, setMyIdentity] = useState<Identity | null>(null);
+  const [opponentIdentity, setOpponentIdentity] = useState<Identity | null>(null);
+  const [showIdentityModal, setShowIdentityModal] = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const userIdRef = useRef<string>("");
@@ -44,6 +49,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const stateRef = useRef(state);
   const startedAtRef = useRef<number>(startedAt);
   const lastTickRef = useRef<number>(Date.now());
+  const myIdentityRef = useRef<Identity | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -52,6 +58,15 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   useEffect(() => {
     startedAtRef.current = startedAt;
   }, [startedAt]);
+
+  useEffect(() => {
+    myIdentityRef.current = myIdentity;
+  }, [myIdentity]);
+
+  // Load identity on mount
+  useEffect(() => {
+    setMyIdentity(loadIdentity());
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -106,6 +121,14 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             payload: { state: stateRef.current, startedAt: startedAtRef.current },
           });
         }
+        // Re-broadcast our identity (in case opponent missed initial subscribe broadcast)
+        if (hasOpponent && myIdentityRef.current) {
+          channel.send({
+            type: "broadcast",
+            event: "identity",
+            payload: { userId: userIdRef.current, identity: myIdentityRef.current },
+          });
+        }
       })
       .on("broadcast", { event: "move" }, ({ payload }) => {
         try {
@@ -128,12 +151,25 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
         const loser = payload.color as Color;
         setState((s) => (s.winner ? s : { ...s, winner: loser === "white" ? "black" : "white" }));
       })
+      .on("broadcast", { event: "identity" }, ({ payload }) => {
+        if (payload?.userId && payload.userId !== userIdRef.current && payload?.identity) {
+          setOpponentIdentity(payload.identity as Identity);
+        }
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
             user_id: userIdRef.current,
             joined_at: joinedAtRef.current,
           });
+          // Broadcast our identity right after joining the channel.
+          if (myIdentityRef.current) {
+            channel.send({
+              type: "broadcast",
+              event: "identity",
+              payload: { userId: userIdRef.current, identity: myIdentityRef.current },
+            });
+          }
         }
       });
 
@@ -337,8 +373,13 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
 
   const durationSec = Math.floor((Date.now() - startedAt) / 1000);
   const modeLabel = "Онлайн · мультиплеер";
-  const topLabel = "Соперник";
-  const bottomLabel = `Вы (${myColor === "white" ? "золотые" : "синие"})`;
+  const colorLabel = myColor === "white" ? "золотые" : "синие";
+  const topLabel = opponentIdentity
+    ? `${opponentIdentity.nickname} · ${opponentIdentity.city}`
+    : "Соперник";
+  const bottomLabel = myIdentity
+    ? `${myIdentity.nickname} · ${myIdentity.city} (${colorLabel})`
+    : `Вы (${colorLabel})`;
 
   return (
     <div className="min-h-screen px-4 py-6 md:py-10">
@@ -351,14 +392,25 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             <ArrowLeft className="w-4 h-4" />
             Покинуть
           </button>
-          <button
-            onClick={resign}
-            disabled={!!state.winner}
-            className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
-          >
-            <Flag className="w-4 h-4" />
-            Сдаться
-          </button>
+          <div className="flex items-center gap-3">
+            {!myIdentity && (
+              <button
+                onClick={() => setShowIdentityModal(true)}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-gold/10 border border-gold/30 hover:bg-gold/20 hover:border-gold/60 text-gold-bright transition-all"
+              >
+                <User className="w-3 h-3" />
+                Назвать себя сопернику
+              </button>
+            )}
+            <button
+              onClick={resign}
+              disabled={!!state.winner}
+              className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
+            >
+              <Flag className="w-4 h-4" />
+              Сдаться
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
@@ -394,6 +446,23 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             moves={state.history.length}
             history={state.history}
             opponent="multiplayer"
+          />
+        )}
+        {showIdentityModal && (
+          <IdentityModal
+            initial={myIdentity ?? undefined}
+            onClose={() => setShowIdentityModal(false)}
+            onSave={(id) => {
+              setMyIdentity(id);
+              setShowIdentityModal(false);
+              // Broadcast new identity to opponent immediately
+              channelRef.current?.send({
+                type: "broadcast",
+                event: "identity",
+                payload: { userId: userIdRef.current, identity: id },
+              });
+            }}
+            title="Назвать себя сопернику"
           />
         )}
       </AnimatePresence>
