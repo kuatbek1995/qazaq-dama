@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Bot, Users, Link2, Trophy, Crown, Palette, Sparkles, Zap, Cpu, MapPin, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { Difficulty } from "@/lib/checkers/types";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,7 @@ export function Menu({
   const [showPro, setShowPro] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
   const [showLang, setShowLang] = useState(false);
+  const langWasForced = useRef(false);
 
   useEffect(() => {
     setIdentity(loadIdentity());
@@ -53,9 +54,19 @@ export function Menu({
 
   useEffect(() => {
     if (localeReady && !hasPicked) {
+      langWasForced.current = true;
       setShowLang(true);
     }
   }, [localeReady, hasPicked]);
+
+  const handleLangClose = () => {
+    setShowLang(false);
+    // First-time visit: chain into identity prompt if user hasn't named yet
+    if (langWasForced.current && !loadIdentity()) {
+      setShowIdentity(true);
+    }
+    langWasForced.current = false;
+  };
 
   const isPro = pro !== null;
   return (
@@ -213,7 +224,7 @@ export function Menu({
         {showLang && (
           <LanguagePickerModal
             forced={!hasPicked}
-            onClose={() => setShowLang(false)}
+            onClose={handleLangClose}
           />
         )}
       </AnimatePresence>

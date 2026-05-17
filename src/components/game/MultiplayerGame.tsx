@@ -19,6 +19,7 @@ import { IdentityModal } from "@/components/IdentityModal";
 import { SoundToggle } from "@/components/SoundToggle";
 import { sound } from "@/lib/sound";
 import { loadIdentity, type Identity } from "@/lib/identity";
+import { useT } from "@/lib/i18n";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 const TIMER_BUDGET_MS = 3 * 60 * 1000;
@@ -29,6 +30,7 @@ type PresenceRow = {
 };
 
 export function MultiplayerGame({ matchId }: { matchId: string }) {
+  const t = useT();
   const router = useRouter();
   const supabase = getSupabase();
   const configured = isSupabaseConfigured();
@@ -312,7 +314,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   }
   function resign() {
     if (!myColor) return;
-    if (!confirm("Сдаться? Соперник победит.")) return;
+    if (!confirm(t("mp.surrender") + "?")) return;
     setState((s) => (s.winner ? s : { ...s, winner: myColor === "white" ? "black" : "white" }));
     channelRef.current?.send({
       type: "broadcast",
@@ -337,9 +339,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-md text-center p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-          <h2 className="font-display text-2xl font-bold mb-3 gold-text">Мультиплеер не настроен</h2>
+          <h2 className="font-display text-2xl font-bold mb-3 gold-text">{t("mp.notConfigured.title")}</h2>
           <p className="text-ink-soft mb-6 text-sm">
-            Для онлайн-партий нужен Supabase Realtime. Админ должен задать
+            {t("mp.notConfigured.body")}
             <code className="block mt-2 text-xs font-mono text-gold">
               NEXT_PUBLIC_SUPABASE_URL
               <br />
@@ -350,7 +352,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             onClick={backToMenu}
             className="px-5 py-2.5 rounded-xl bg-gold text-[#1c1206] text-sm font-semibold hover:bg-gold-bright"
           >
-            В меню
+            {t("mp.leave")}
           </button>
         </div>
       </div>
@@ -362,15 +364,15 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 ornament-bg">
         <div className="max-w-md text-center p-8 rounded-3xl border border-white/10 bg-white/[0.02]">
-          <h2 className="font-display text-2xl font-bold mb-3 gold-text">Партия уже занята</h2>
+          <h2 className="font-display text-2xl font-bold mb-3 gold-text">{t("mp.alreadyFull.title")}</h2>
           <p className="text-ink-soft mb-6 text-sm">
-            В этой комнате уже играют двое. Создай свою партию из главного меню.
+            {t("mp.alreadyFull.body")}
           </p>
           <button
             onClick={backToMenu}
             className="px-5 py-2.5 rounded-xl bg-gold text-[#1c1206] text-sm font-semibold hover:bg-gold-bright"
           >
-            В меню
+            {t("mp.leave")}
           </button>
         </div>
       </div>
@@ -393,9 +395,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
           >
             <Loader2 className="w-10 h-10 text-gold-bright" />
           </motion.div>
-          <h2 className="font-display text-3xl font-bold gold-text mb-2">Ждём соперника</h2>
+          <h2 className="font-display text-3xl font-bold gold-text mb-2">{t("mp.waiting.title")}</h2>
           <p className="text-ink-soft text-sm mb-6">
-            Скопируй ссылку и отправь другу — как только он откроет, начнётся партия.
+            {t("mp.waiting.body")}
           </p>
           <div className="flex items-center gap-2 p-3 rounded-xl bg-black/40 border border-white/10 mb-4">
             <Link2 className="w-4 h-4 text-gold flex-shrink-0" />
@@ -410,18 +412,18 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
               className="px-3 py-1.5 rounded-lg bg-gold text-[#1c1206] text-xs font-semibold flex items-center gap-1.5 hover:bg-gold-bright transition-colors"
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? "Скопировано" : "Копировать"}
+              {copied ? t("mp.copied") : t("mp.copy")}
             </button>
           </div>
           <div className="text-xs text-ink-soft/60 mb-6">
-            Ты играешь {myColor === "white" ? "золотыми (ходишь первым)" : myColor === "black" ? "синими" : "..."}.
+            {myColor === "white" ? t("mp.youPlay.gold") : myColor === "black" ? t("mp.youPlay.blue") : t("mp.youPlay.unknown")}
           </div>
           <button
             onClick={backToMenu}
             className="flex items-center gap-2 mx-auto text-sm text-ink-soft hover:text-gold transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Отменить
+            {t("mp.cancel")}
           </button>
         </motion.div>
       </div>
@@ -429,12 +431,12 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   }
 
   const durationSec = Math.floor((Date.now() - startedAt) / 1000);
-  const modeLabel = "Онлайн · мультиплеер";
-  const colorLabel = myColor === "white" ? "золотые" : "синие";
-  const topLabel = opponentIdentity ? opponentIdentity.nickname : "Соперник";
+  const modeLabel = t("mp.mode");
+  const colorLabel = myColor === "white" ? t("mp.color.gold") : t("mp.color.blue");
+  const topLabel = opponentIdentity ? opponentIdentity.nickname : t("game.opponent.generic");
   const bottomLabel = myIdentity
     ? `${myIdentity.nickname} · ${myIdentity.city} (${colorLabel})`
-    : `Вы (${colorLabel})`;
+    : t("mp.you.withColor", { color: colorLabel });
 
   return (
     <div className="min-h-screen px-4 py-6 md:py-10">
@@ -445,7 +447,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             className="flex items-center gap-2 text-sm text-ink-soft hover:text-gold transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Покинуть
+            {t("mp.leave")}
           </button>
           <div className="flex items-center gap-3">
             <SoundToggle />
@@ -455,7 +457,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
               className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
             >
               <Flag className="w-4 h-4" />
-              Сдаться
+              {t("mp.surrender")}
             </button>
           </div>
         </div>
@@ -486,7 +488,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
         <ChatPanel
           messages={chatMessages}
           onSend={sendChat}
-          opponentName={opponentIdentity?.nickname ?? "соперником"}
+          opponentName={opponentIdentity?.nickname ?? t("mp.opponentFallback")}
         />
       )}
 
@@ -517,9 +519,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
                 payload: { userId: userIdRef.current, identity: id },
               });
             }}
-            title="Введи своё имя"
-            description="Соперник увидит твоё имя. После этого начнётся партия."
-            submitLabel="Начать"
+            title={t("mp.identity.title")}
+            description={t("mp.identity.desc")}
+            submitLabel={t("mp.identity.submit")}
           />
         )}
       </AnimatePresence>

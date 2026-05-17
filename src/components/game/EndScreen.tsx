@@ -14,6 +14,7 @@ import confetti from "canvas-confetti";
 import type { Color, Move } from "@/lib/checkers/types";
 import { recordScore, type ScoreOpponent } from "@/lib/scores";
 import { loadIdentity, type Identity } from "@/lib/identity";
+import { useLocale, useT } from "@/lib/i18n";
 
 type Props = {
   winner: Color | "draw";
@@ -36,6 +37,8 @@ export function EndScreen({
   history = [],
   opponent,
 }: Props) {
+  const t = useT();
+  const { locale } = useLocale();
   const youWon = winner === yourColor;
   const isDraw = winner === "draw";
   const recordedRef = useRef(false);
@@ -93,7 +96,7 @@ export function EndScreen({
       const res = await fetch("/api/coach", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ history, winner, yourColor, durationSec }),
+        body: JSON.stringify({ history, winner, yourColor, durationSec, locale }),
       });
       if (res.status === 503) {
         setCoachState("unavailable");
@@ -101,14 +104,14 @@ export function EndScreen({
       }
       const data = await res.json();
       if (!res.ok) {
-        setErrorMsg(data.error ?? "Ошибка");
+        setErrorMsg(data.error ?? t("end.error"));
         setCoachState("error");
         return;
       }
       setAnalysis(data.analysis ?? "");
       setCoachState("ready");
     } catch (e) {
-      setErrorMsg(e instanceof Error ? e.message : "unknown");
+      setErrorMsg(e instanceof Error ? e.message : t("end.error"));
       setCoachState("error");
     }
   }
@@ -135,23 +138,23 @@ export function EndScreen({
         </motion.div>
 
         <h2 className="font-display text-5xl font-bold gold-text mb-2">
-          {isDraw ? "Ничья!" : youWon ? "Победа!" : "Поражение"}
+          {isDraw ? t("end.title.draw") : youWon ? t("end.title.win") : t("end.title.lose")}
         </h2>
         <p className="text-ink-soft mb-6">
           {isDraw
-            ? "Достойная партия для обеих сторон"
+            ? t("end.subtitle.draw")
             : youWon
-            ? "Жеңіс сенімен!"
-            : "Реванш?"}
+            ? t("end.subtitle.win")
+            : t("end.subtitle.lose")}
         </p>
 
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div className="rounded-lg bg-white/5 p-3">
-            <div className="text-ink-soft text-xs">Ходов</div>
+            <div className="text-ink-soft text-xs">{t("end.moves")}</div>
             <div className="text-xl font-semibold text-ink">{moves}</div>
           </div>
           <div className="rounded-lg bg-white/5 p-3">
-            <div className="text-ink-soft text-xs">Время</div>
+            <div className="text-ink-soft text-xs">{t("end.time")}</div>
             <div className="text-xl font-semibold text-ink">
               {Math.floor(durationSec / 60)}:
               {(durationSec % 60).toString().padStart(2, "0")}
@@ -161,7 +164,7 @@ export function EndScreen({
 
         {identity && opponent && opponent !== "hotseat" && opponent !== "multiplayer" && (
           <div className="mb-6 text-xs text-ink-soft/70">
-            Результат сохранён в лидерборд:{" "}
+            {t("end.savedTo")}{" "}
             <span className="text-gold">{identity.nickname}</span> ·{" "}
             {identity.city}
           </div>
@@ -181,7 +184,7 @@ export function EndScreen({
                   className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-kz-blue/20 to-kz-blue/5 border border-kz-blue/40 hover:border-kz-blue hover:bg-kz-blue/10 transition-all flex items-center justify-center gap-2 text-sm font-medium"
                 >
                   <Sparkles className="w-4 h-4 text-kz-blue" />
-                  Разбор партии от AI-тренера
+                  {t("end.coach.title")}
                 </motion.button>
               )}
 
@@ -193,7 +196,7 @@ export function EndScreen({
                   className="px-4 py-6 rounded-xl border border-kz-blue/30 bg-kz-blue/5 flex items-center justify-center gap-3 text-sm text-ink-soft"
                 >
                   <Loader2 className="w-5 h-5 animate-spin text-kz-blue" />
-                  Тренер думает…
+                  {t("end.coach.thinking")}
                 </motion.div>
               )}
 
@@ -206,7 +209,7 @@ export function EndScreen({
                 >
                   <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-kz-blue mb-3">
                     <Bot className="w-3 h-3" />
-                    AI-тренер
+                    {t("end.coach.label")}
                   </div>
                   {analysis}
                 </motion.div>
@@ -219,7 +222,7 @@ export function EndScreen({
                   animate={{ opacity: 1 }}
                   className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-xs text-ink-soft"
                 >
-                  AI-тренер недоступен — нет API-ключа. (v2)
+                  {t("end.coach.unavailable")}
                 </motion.div>
               )}
 
@@ -230,7 +233,7 @@ export function EndScreen({
                   animate={{ opacity: 1 }}
                   className="px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/5 text-xs text-red-300"
                 >
-                  Ошибка: {errorMsg}
+                  {t("end.errorPrefix")} {errorMsg}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -242,14 +245,14 @@ export function EndScreen({
             onClick={onMenu}
             className="flex-1 px-4 py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
           >
-            <Home className="w-4 h-4" />В меню
+            <Home className="w-4 h-4" />{t("end.btn.menu")}
           </button>
           <button
             onClick={onPlayAgain}
             className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-gold to-gold-deep text-[#1c1206] hover:from-gold-bright hover:to-gold transition-colors flex items-center justify-center gap-2 text-sm font-semibold shadow-[0_8px_20px_-4px_rgba(240,193,75,0.5)]"
           >
             <RotateCcw className="w-4 h-4" />
-            Реванш
+            {t("end.btn.rematch")}
           </button>
         </div>
       </motion.div>

@@ -5,6 +5,7 @@ import { Bot, User, Users, Clock, Trophy } from "lucide-react";
 import type { Color, GameState } from "@/lib/checkers/types";
 import { countPieces } from "@/lib/checkers/engine";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type Props = {
   state: GameState;
@@ -25,6 +26,7 @@ export function GameSidebar({
   thinking,
   timer,
 }: Props) {
+  const t = useT();
   const counts = countPieces(state.board);
   const blackCaptured = 12 - counts.black;
   const whiteCaptured = 12 - counts.white;
@@ -72,7 +74,7 @@ export function GameSidebar({
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold truncate">{label}</div>
             <div className="text-xs text-ink-soft flex gap-2">
-              <span>{12 - captured} шашек</span>
+              <span>{t("sidebar.pieces", { n: 12 - captured })}</span>
               {kings > 0 && <span className="text-gold">👑 {kings}</span>}
             </div>
           </div>
@@ -121,7 +123,7 @@ export function GameSidebar({
             className="text-xs text-gold flex items-center gap-1.5"
           >
             <Bot className="w-3 h-3" />
-            ИИ думает…
+            {t("sidebar.aiThinking")}
           </motion.span>
         )}
       </div>
@@ -138,10 +140,10 @@ export function GameSidebar({
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
         <div className="text-xs uppercase tracking-widest text-ink-soft mb-2 flex items-center gap-2">
           <Trophy className="w-3 h-3" />
-          История ходов
+          {t("sidebar.history")}
         </div>
         {state.history.length === 0 ? (
-          <div className="text-sm text-ink-soft/60 italic">Партия только началась</div>
+          <div className="text-sm text-ink-soft/60 italic">{t("sidebar.gameStarted")}</div>
         ) : (
           <div className="max-h-32 overflow-y-auto text-xs font-mono space-y-0.5">
             {state.history.slice(-10).map((m, i) => {

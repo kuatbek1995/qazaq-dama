@@ -25,6 +25,7 @@ import { EndScreen } from "./EndScreen";
 import { Menu } from "./Menu";
 import { SoundToggle } from "@/components/SoundToggle";
 import { sound } from "@/lib/sound";
+import { useT } from "@/lib/i18n";
 
 type Screen = "menu" | "game" | "leaderboard";
 
@@ -41,6 +42,7 @@ const STORAGE_KEY = "qazaq-dama:saved-v1";
 const TIMER_BUDGET_MS = 3 * 60 * 1000; // 3 minute blitz
 
 export function CheckersGame() {
+  const t = useT();
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>("menu");
   const [mode, setMode] = useState<GameMode>("hotseat");
@@ -278,7 +280,7 @@ export function CheckersGame() {
     setTimer({ white: TIMER_BUDGET_MS, black: TIMER_BUDGET_MS });
   }
   function resign() {
-    if (!confirm("Сдаться? Соперник победит.")) return;
+    if (!confirm(t("game.confirmSurrender"))) return;
     setState((s) => ({ ...s, winner: s.turn === "white" ? "black" : "white" }));
   }
 
@@ -296,25 +298,26 @@ export function CheckersGame() {
   }
 
   // Game screen
+  const aiLevel = difficulty === "easy" ? t("menu.ai.easy") : difficulty === "medium" ? t("menu.ai.medium") : t("menu.ai.hard");
   const modeLabel =
     mode === "ai"
-      ? `Против ИИ · ${difficulty === "easy" ? "Лёгкий" : difficulty === "medium" ? "Средний" : "Сложный"}`
+      ? t("game.mode.ai", { level: aiLevel })
       : mode === "hotseat"
-      ? "С другом — за одним экраном"
-      : "Онлайн";
+      ? t("game.mode.hotseat")
+      : t("game.mode.online");
 
   const topLabel =
     mode === "ai"
-      ? "ИИ-соперник"
+      ? t("game.opponent.ai")
       : mode === "hotseat"
-      ? `Игрок ${yourColor === "white" ? "2" : "1"} (синие)`
-      : "Соперник";
+      ? (yourColor === "white" ? t("game.opponent.player2.blue") : t("game.opponent.player1.blue"))
+      : t("game.opponent.generic");
   const bottomLabel =
     mode === "ai"
-      ? "Вы"
+      ? t("game.you")
       : mode === "hotseat"
-      ? `Игрок ${yourColor === "white" ? "1" : "2"} (золотые)`
-      : "Вы";
+      ? (yourColor === "white" ? t("game.you.player1.gold") : t("game.you.player2.gold"))
+      : t("game.you");
 
   const durationSec = Math.floor((Date.now() - startedAt) / 1000);
 
@@ -327,7 +330,7 @@ export function CheckersGame() {
             className="flex items-center gap-2 text-sm text-ink-soft hover:text-gold transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            В меню
+            {t("game.btn.menu")}
           </button>
           <div className="flex items-center gap-3">
             <SoundToggle />
@@ -337,7 +340,7 @@ export function CheckersGame() {
               className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
             >
               <Flag className="w-4 h-4" />
-              Сдаться
+              {t("game.btn.surrender")}
             </button>
           </div>
         </div>

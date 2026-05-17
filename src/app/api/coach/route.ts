@@ -9,6 +9,13 @@ type Body = {
   winner: Color | "draw" | null;
   yourColor: Color;
   durationSec: number;
+  locale?: "en" | "ru" | "kk";
+};
+
+const LOCALE_BRIEF: Record<"en" | "ru" | "kk", string> = {
+  en: `Reply in ENGLISH. Output only plain English text — no Russian or Kazakh words. Tone: a friendly, slightly snarky checkers coach talking to a friend over tea.`,
+  ru: `Отвечай НА РУССКОМ языке. Только русский текст. Тон: опытный, чуть язвительный шашечный тренер, говорящий с другом за чаем.`,
+  kk: `Жауапты ҚАЗАҚ тілінде бер. Тек қазақша мәтін. Стиль: тәжірибелі, сәл әзілшіл дойбы жаттықтырушысы досымен шай үстінде сөйлесіп отырғандай.`,
 };
 
 export async function POST(req: Request) {
@@ -28,11 +35,12 @@ export async function POST(req: Request) {
   }
 
   const { history, winner, yourColor, durationSec } = body;
+  const locale = body.locale === "en" || body.locale === "kk" || body.locale === "ru" ? body.locale : "ru";
   if (!Array.isArray(history)) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
   if (history.length > 200) {
-    return NextResponse.json({ error: "Слишком длинная партия для анализа" }, { status: 400 });
+    return NextResponse.json({ error: "History too long for analysis" }, { status: 400 });
   }
 
   const movesText = history
@@ -57,29 +65,31 @@ export async function POST(req: Request) {
   const kingCount = history.filter((m) => m.becomesKing).length;
   const isShort = history.length < 8;
 
-  const prompt = `Ты — опытный, чуть язвительный шашечный тренер. Только что закончилась партия в РУССКИЕ ШАШКИ (8х8, обязательные взятия, длинная дамка). Разбери её ЖИВО, как будто говоришь с другом за чаем.
+  const prompt = `You are a checkers coach analysing a finished game of RUSSIAN CHECKERS (8x8 board, mandatory captures, flying king).
 
-ПАРТИЯ:
-- Игрок играл ${yourColor === "white" ? "золотыми (снизу)" : "синими (сверху)"}
-- Длительность: ${Math.floor(durationSec / 60)} мин ${durationSec % 60} сек
-- Исход: ${outcome}
-- Всего ходов: ${history.length}
-- Взятий совершено: ${captureCount}
-- Дамок появилось: ${kingCount}
-${isShort ? "- ВАЖНО: партия очень короткая, многого не успело произойти — не натягивай глубокий анализ, скажи это честно" : ""}
+GAME:
+- Player played ${yourColor === "white" ? "gold (bottom side)" : "blue (top side)"}
+- Duration: ${Math.floor(durationSec / 60)} min ${durationSec % 60} sec
+- Outcome: ${outcome}
+- Total moves: ${history.length}
+- Captures made: ${captureCount}
+- Kings crowned: ${kingCount}
+${isShort ? "- IMPORTANT: the game is very short, not much happened — don't pretend to do a deep analysis, say it honestly." : ""}
 
-ХОДЫ (нотация: 1.a3-b4 = ход с a3 на b4, 1.a3:c5 = взятие):
+MOVES (notation: 1.a3-b4 = move from a3 to b4, 1.a3:c5 = capture):
 ${movesText}
 
-ТРЕБОВАНИЯ К ОТВЕТУ:
-- НИКАКИХ заголовков, нумерации, маркеров — только живая разговорная речь
-- НЕ повторяй цифры (время, исход, число ходов) — игрок их уже видел сверху
-- Структуру меняй каждый раз — не следуй шаблону «стиль → лучший ход → худший ход → совет»
-- Ссылайся на КОНКРЕТНЫЕ ходы партии по номеру (например, «на пятом ходу...»)
-- Без воды, без «общих принципов шашек» — только то что видишь в ЭТОЙ партии
-- Тон выбери под ситуацию: коротко проиграл = бодро подколи; долго и грамотно = искренне похвали; глупая ошибка = по-доброму ткни носом
-- Длина: 3-5 коротких абзацев, не больше 180 слов
-- БЕЗ markdown (никаких **, _, #, *)`;
+OUTPUT REQUIREMENTS:
+- NO headers, numbering, or bullet markers — flowing conversational prose only
+- DO NOT repeat the numbers (time, outcome, move count) — player already sees them above
+- Vary the structure every time — do not follow a "style → best move → worst move → advice" template
+- Reference SPECIFIC moves by number (e.g., "on move five...")
+- No filler, no "general checkers principles" — only what YOU see in THIS game
+- Pick tone based on situation: lost quickly = friendly jab; long and skillful = sincere praise; silly blunder = kind nose-tap
+- Length: 3-5 short paragraphs, max 180 words
+- NO markdown (no **, _, #, *)
+
+${LOCALE_BRIEF[locale]}`;
 
   try {
     const ai = new GoogleGenerativeAI(apiKey);

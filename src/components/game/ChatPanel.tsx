@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, Smile, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export type ChatMessage = {
   id: string;
@@ -23,6 +24,7 @@ type Props = {
 const STICKERS = ["👍", "👎", "🔥", "😂", "😱", "🤔", "👑", "❤️", "🎉", "😤", "🤝", "🙈"];
 
 export function ChatPanel({ messages, onSend, opponentName }: Props) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [unread, setUnread] = useState(0);
@@ -73,7 +75,7 @@ export function ChatPanel({ messages, onSend, opponentName }: Props) {
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((o) => !o)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-kz-blue to-kz-blue-deep shadow-[0_8px_24px_-4px_rgba(0,175,202,0.6)] flex items-center justify-center text-white hover:shadow-[0_10px_30px_-4px_rgba(0,175,202,0.8)] transition-shadow"
-        aria-label="Открыть чат"
+        aria-label={t("chat.open")}
       >
         {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
         {!open && unread > 0 && (
@@ -99,15 +101,15 @@ export function ChatPanel({ messages, onSend, opponentName }: Props) {
           >
             <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-kz-blue" />
-              <span className="font-display text-sm font-semibold">Чат с {opponentName}</span>
+              <span className="font-display text-sm font-semibold">{t("chat.withOpponent", { name: opponentName })}</span>
             </div>
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center text-ink-soft/50 text-xs gap-2">
                   <MessageCircle className="w-8 h-8 opacity-30" />
-                  <div>Сообщений нет.</div>
-                  <div>Поприветствуй соперника 👋</div>
+                  <div>{t("chat.empty")}</div>
+                  <div>{t("chat.greet")}</div>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -165,7 +167,7 @@ export function ChatPanel({ messages, onSend, opponentName }: Props) {
                     ? "bg-gold/20 text-gold-bright"
                     : "text-ink-soft hover:bg-white/10 hover:text-ink",
                 )}
-                aria-label="Стикеры"
+                aria-label={t("chat.stickers")}
               >
                 <Smile className="w-4 h-4" />
               </button>
@@ -179,7 +181,7 @@ export function ChatPanel({ messages, onSend, opponentName }: Props) {
                     send();
                   }
                 }}
-                placeholder="Сообщение…"
+                placeholder={t("chat.placeholder")}
                 maxLength={200}
                 className="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-ink text-sm placeholder-ink-soft/40 outline-none focus:border-kz-blue transition-colors"
               />
@@ -187,7 +189,7 @@ export function ChatPanel({ messages, onSend, opponentName }: Props) {
                 onClick={send}
                 disabled={!input.trim()}
                 className="p-2 rounded-lg bg-kz-blue text-white hover:bg-kz-blue/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                aria-label="Отправить"
+                aria-label={t("chat.send")}
               >
                 <Send className="w-4 h-4" />
               </button>
