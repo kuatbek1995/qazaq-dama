@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import confetti from "canvas-confetti";
@@ -11,6 +11,22 @@ import { saveProStatus } from "@/lib/pro";
 type VerifyState = "loading" | "ok" | "failed";
 
 export default function ProSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingShell />}>
+      <ProSuccessInner />
+    </Suspense>
+  );
+}
+
+function LoadingShell() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a2540] via-[#0c1729] to-[#050913] p-6">
+      <Loader2 className="w-10 h-10 text-gold-bright animate-spin" />
+    </main>
+  );
+}
+
+function ProSuccessInner() {
   const params = useSearchParams();
   const sessionId = params.get("session_id");
   const [verifyState, setVerifyState] = useState<VerifyState>(
