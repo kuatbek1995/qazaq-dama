@@ -50,6 +50,7 @@ const en: Dict = {
   "menu.continueSaved": "Continue saved game",
   "menu.footer.made": "Made in Kazakhstan",
   "menu.footer.incubator": "Specially for nFactorial Incubator · 2026",
+  "menu.footer.founder": "Founder",
 
   // Menu — mode cards
   "menu.hotseat.title": "With a friend on one screen",
@@ -237,6 +238,7 @@ const ru: Dict = {
   "menu.continueSaved": "Продолжить сохранённую партию",
   "menu.footer.made": "Сделано в Казахстане",
   "menu.footer.incubator": "Специально для nFactorial Incubator · 2026",
+  "menu.footer.founder": "Основатель",
 
   "menu.hotseat.title": "С другом за одним экраном",
   "menu.hotseat.desc": "Hot-seat. Передавайте устройство по очереди.",
@@ -413,6 +415,7 @@ const kk: Dict = {
   "menu.continueSaved": "Сақталған ойынды жалғастыру",
   "menu.footer.made": "Қазақстанда жасалған",
   "menu.footer.incubator": "nFactorial Incubator үшін арнайы · 2026",
+  "menu.footer.founder": "Құрылтайшы",
 
   "menu.hotseat.title": "Достыңмен бір экранда",
   "menu.hotseat.desc": "Hot-seat. Құрылғыны кезек-кезек беріңіз.",
