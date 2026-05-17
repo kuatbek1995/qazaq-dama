@@ -14,6 +14,8 @@ class SoundManager {
   private menuAudio: HTMLAudioElement | null = null;
   private gameAudio: HTMLAudioElement | null = null;
   private readonly MUSIC_VOLUME = 0.35;
+  private pendingPlay: HTMLAudioElement | null = null;
+  private unlockListenerAttached = false;
 
   init() {
     if (typeof window === "undefined") return;
@@ -185,9 +187,7 @@ class SoundManager {
     }
     this.menuAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
     this.menuAudio.currentTime = 0;
-    this.menuAudio.play().catch(() => {
-      // Autoplay blocked until user interaction — that's OK, will play on next click.
-    });
+    this.tryPlay(this.menuAudio);
   }
 
   stopMenuAmbient() {
@@ -208,7 +208,36 @@ class SoundManager {
     }
     this.gameAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
     this.gameAudio.currentTime = 0;
-    this.gameAudio.play().catch(() => {});
+    this.tryPlay(this.gameAudio);
+  }
+
+  private tryPlay(audio: HTMLAudioElement) {
+    audio.play().catch(() => {
+      this.pendingPlay = audio;
+      this.attachUnlockListeners();
+    });
+  }
+
+  private attachUnlockListeners() {
+    if (this.unlockListenerAttached || typeof window === "undefined") return;
+    this.unlockListenerAttached = true;
+    const events = ["pointerdown", "mousedown", "touchstart", "touchend", "keydown", "click"];
+    const handler = () => {
+      const audio = this.pendingPlay;
+      if (!audio) {
+        this.unlockListenerAttached = false;
+        events.forEach((ev) => window.removeEventListener(ev, handler, { capture: true } as EventListenerOptions));
+        return;
+      }
+      audio.play()
+        .then(() => {
+          this.pendingPlay = null;
+          this.unlockListenerAttached = false;
+          events.forEach((ev) => window.removeEventListener(ev, handler, { capture: true } as EventListenerOptions));
+        })
+        .catch(() => {/* will retry on next event */});
+    };
+    events.forEach((e) => window.addEventListener(e, handler, { capture: true, once: false, passive: true }));
   }
 
   stopGameAmbient() {
