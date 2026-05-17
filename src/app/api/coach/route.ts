@@ -31,6 +31,9 @@ export async function POST(req: Request) {
   if (!Array.isArray(history)) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
+  if (history.length > 200) {
+    return NextResponse.json({ error: "Слишком длинная партия для анализа" }, { status: 400 });
+  }
 
   const movesText = history
     .map((m, i) => {

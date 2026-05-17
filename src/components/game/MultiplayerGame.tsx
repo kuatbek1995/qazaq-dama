@@ -30,6 +30,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
 
   const [myColor, setMyColor] = useState<Color | null>(null);
   const [opponentJoined, setOpponentJoined] = useState(false);
+  const [isSpectator, setIsSpectator] = useState(false);
   const [state, setState] = useState<GameState>(() => initialState());
   const [selected, setSelected] = useState<Coord | null>(null);
   const [startedAt, setStartedAt] = useState(Date.now());
@@ -41,6 +42,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const userIdRef = useRef<string>("");
   const joinedAtRef = useRef<number>(Date.now());
   const stateRef = useRef(state);
+  const startedAtRef = useRef<number>(startedAt);
   const lastTickRef = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -48,10 +50,27 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   }, [state]);
 
   useEffect(() => {
+    startedAtRef.current = startedAt;
+  }, [startedAt]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     setShareUrl(`${window.location.origin}/m/${matchId}`);
-    userIdRef.current = crypto.randomUUID();
-    joinedAtRef.current = Date.now();
+    // Persist user ID per-match so browser refresh keeps the same seat.
+    const storageKey = `qd-match-uid:${matchId}`;
+    const joinedKey = `qd-match-joined:${matchId}`;
+    let uid = sessionStorage.getItem(storageKey);
+    let joined = sessionStorage.getItem(joinedKey);
+    if (!uid) {
+      uid = crypto.randomUUID();
+      sessionStorage.setItem(storageKey, uid);
+    }
+    if (!joined) {
+      joined = String(Date.now());
+      sessionStorage.setItem(joinedKey, joined);
+    }
+    userIdRef.current = uid;
+    joinedAtRef.current = Number(joined);
   }, [matchId]);
 
   // Realtime channel
@@ -75,28 +94,37 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
         const meIndex = sorted.findIndex((p) => p.user_id === userIdRef.current);
         if (meIndex === 0) setMyColor("white");
         else if (meIndex === 1) setMyColor("black");
+        else if (meIndex >= 2) setIsSpectator(true);
         const hasOpponent = players.length >= 2;
         setOpponentJoined(hasOpponent);
 
-        // If we're white (host) and a second player just joined → push state
+        // If we're white (host) and a second player just joined → push state to everyone
         if (meIndex === 0 && hasOpponent) {
           channel.send({
             type: "broadcast",
             event: "sync",
-            payload: { state: stateRef.current, startedAt },
+            payload: { state: stateRef.current, startedAt: startedAtRef.current },
           });
         }
       })
       .on("broadcast", { event: "move" }, ({ payload }) => {
-        const move = payload.move as Move;
-        setState((s) => (s.winner ? s : applyMove(s, move)));
-        setSelected(null);
+        try {
+          const move = payload.move as Move;
+          setState((s) => (s.winner ? s : applyMove(s, move)));
+          setSelected(null);
+        } catch {
+          // ignore malformed move payload
+        }
       })
       .on("broadcast", { event: "sync" }, ({ payload }) => {
-        if (payload.state) setState(payload.state as GameState);
-        if (payload.startedAt) setStartedAt(payload.startedAt as number);
+        if (payload?.state) setState(payload.state as GameState);
+        if (payload?.startedAt) setStartedAt(payload.startedAt as number);
       })
       .on("broadcast", { event: "resign" }, ({ payload }) => {
+        const loser = payload.color as Color;
+        setState((s) => (s.winner ? s : { ...s, winner: loser === "white" ? "black" : "white" }));
+      })
+      .on("broadcast", { event: "timeout" }, ({ payload }) => {
         const loser = payload.color as Color;
         setState((s) => (s.winner ? s : { ...s, winner: loser === "white" ? "black" : "white" }));
       })
@@ -113,7 +141,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [supabase, matchId, startedAt]);
+    // Intentionally exclude startedAt — it's mirrored to startedAtRef.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, matchId]);
 
   // Timer
   useEffect(() => {
@@ -135,9 +165,16 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   useEffect(() => {
     if (state.winner || !myColor) return;
     if (timer[state.turn] === 0) {
+      const loser = state.turn;
       setState((s) =>
-        s.winner ? s : { ...s, winner: s.turn === "white" ? "black" : "white" },
+        s.winner ? s : { ...s, winner: loser === "white" ? "black" : "white" },
       );
+      // Broadcast so opponent's clock-side learns about timeout too.
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "timeout",
+        payload: { color: loser },
+      });
     }
   }, [timer, state.turn, state.winner, myColor]);
 
@@ -213,8 +250,28 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             <code className="block mt-2 text-xs font-mono text-gold">
               NEXT_PUBLIC_SUPABASE_URL
               <br />
-              NEXT_PUBLIC_SUPABASE_ANON_KEY
+              NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
             </code>
+          </p>
+          <button
+            onClick={backToMenu}
+            className="px-5 py-2.5 rounded-xl bg-gold text-[#1c1206] text-sm font-semibold hover:bg-gold-bright"
+          >
+            В меню
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Spectator (3rd+ party in this match)
+  if (isSpectator) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 ornament-bg">
+        <div className="max-w-md text-center p-8 rounded-3xl border border-white/10 bg-white/[0.02]">
+          <h2 className="font-display text-2xl font-bold mb-3 gold-text">Партия уже занята</h2>
+          <p className="text-ink-soft mb-6 text-sm">
+            В этой комнате уже играют двое. Создай свою партию из главного меню.
           </p>
           <button
             onClick={backToMenu}

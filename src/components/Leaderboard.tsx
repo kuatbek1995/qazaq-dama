@@ -21,13 +21,16 @@ export function Leaderboard() {
       return;
     }
     setLoading(true);
-    Promise.all([fetchLeaderboard(city || undefined), fetchCityStats()]).then(
-      ([leader, stats]) => {
+    Promise.all([fetchLeaderboard(city || undefined), fetchCityStats()])
+      .then(([leader, stats]) => {
         setRows(leader);
         setCityStats(stats);
-        setLoading(false);
-      },
-    );
+      })
+      .catch(() => {
+        setRows([]);
+        setCityStats([]);
+      })
+      .finally(() => setLoading(false));
   }, [city, configured]);
 
   return (

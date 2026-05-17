@@ -21,7 +21,12 @@ export function loadIdentity(): Identity | null {
   }
 }
 
-export function saveIdentity(identity: Identity): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(KEY, JSON.stringify(identity));
+export function saveIdentity(identity: Identity): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(identity));
+    return true;
+  } catch {
+    return false;
+  }
 }

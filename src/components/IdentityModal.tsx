@@ -16,12 +16,17 @@ type Props = {
 export function IdentityModal({ initial, onClose, onSave, title }: Props) {
   const [nickname, setNickname] = useState(initial?.nickname ?? "");
   const [city, setCity] = useState<KzCity>(initial?.city ?? "Алматы");
+  const [error, setError] = useState<string | null>(null);
 
   function submit() {
     const trimmed = nickname.trim();
     if (trimmed.length < 2 || trimmed.length > 20) return;
     const identity: Identity = { nickname: trimmed, city };
-    saveIdentity(identity);
+    const ok = saveIdentity(identity);
+    if (!ok) {
+      setError("Не удалось сохранить. Проверь, не выключен ли private mode в браузере.");
+      return;
+    }
     onSave(identity);
   }
 
@@ -75,6 +80,12 @@ export function IdentityModal({ initial, onClose, onSave, title }: Props) {
             ))}
           </select>
         </label>
+
+        {error && (
+          <div className="mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300">
+            {error}
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button
