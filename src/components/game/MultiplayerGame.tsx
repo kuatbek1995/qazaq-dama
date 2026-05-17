@@ -19,6 +19,7 @@ import { IdentityModal } from "@/components/IdentityModal";
 import { SoundToggle } from "@/components/SoundToggle";
 import { sound } from "@/lib/sound";
 import { loadIdentity, type Identity } from "@/lib/identity";
+import { isPro as loadIsPro } from "@/lib/pro";
 import { useT } from "@/lib/i18n";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -47,6 +48,8 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const [myIdentity, setMyIdentity] = useState<Identity | null>(null);
   const [identityLoaded, setIdentityLoaded] = useState(false);
   const [opponentIdentity, setOpponentIdentity] = useState<Identity | null>(null);
+  const [myIsPro, setMyIsPro] = useState(false);
+  const [opponentIsPro, setOpponentIsPro] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -56,6 +59,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const startedAtRef = useRef<number>(startedAt);
   const lastTickRef = useRef<number>(Date.now());
   const myIdentityRef = useRef<Identity | null>(null);
+  const myIsProRef = useRef<boolean>(false);
   const prevHistoryLenRef = useRef<number>(0);
   const winnerSoundPlayedRef = useRef<boolean>(false);
 
@@ -74,6 +78,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   // Load identity on mount + start game ambient
   useEffect(() => {
     setMyIdentity(loadIdentity());
+    const pro = loadIsPro();
+    setMyIsPro(pro);
+    myIsProRef.current = pro;
     setIdentityLoaded(true);
     sound.init();
     sound.startGameAmbient();
@@ -160,7 +167,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
           channel.send({
             type: "broadcast",
             event: "identity",
-            payload: { userId: userIdRef.current, identity: myIdentityRef.current },
+            payload: { userId: userIdRef.current, identity: myIdentityRef.current, isPro: myIsProRef.current },
           });
         }
       })
@@ -188,6 +195,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
       .on("broadcast", { event: "identity" }, ({ payload }) => {
         if (payload?.userId && payload.userId !== userIdRef.current && payload?.identity) {
           setOpponentIdentity(payload.identity as Identity);
+          setOpponentIsPro(Boolean(payload.isPro));
         }
       })
       .on("broadcast", { event: "chat" }, ({ payload }) => {
@@ -210,7 +218,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             channel.send({
               type: "broadcast",
               event: "identity",
-              payload: { userId: userIdRef.current, identity: myIdentityRef.current },
+              payload: { userId: userIdRef.current, identity: myIdentityRef.current, isPro: myIsProRef.current },
             });
           }
         }
@@ -480,6 +488,8 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             bottomLabel={bottomLabel}
             yourColor={myColor ?? "white"}
             timer={timer}
+            topIsPro={opponentIsPro}
+            bottomIsPro={myIsPro}
           />
         </div>
       </div>

@@ -266,7 +266,7 @@ function ModeCard({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        "text-left p-6 rounded-2xl bg-gradient-to-br border transition-all",
+        "flex flex-col items-stretch text-left p-6 rounded-2xl bg-gradient-to-br border transition-all",
         accentClass,
       )}
     >

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bot, User, Users, Clock, Trophy } from "lucide-react";
+import { Bot, Crown, User, Users, Clock, Trophy } from "lucide-react";
 import type { Color, GameState } from "@/lib/checkers/types";
 import { countPieces } from "@/lib/checkers/engine";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ type Props = {
   yourColor: Color;
   thinking?: boolean;
   timer?: { white: number; black: number };
+  topIsPro?: boolean;
+  bottomIsPro?: boolean;
 };
 
 export function GameSidebar({
@@ -25,6 +27,8 @@ export function GameSidebar({
   yourColor,
   thinking,
   timer,
+  topIsPro = false,
+  bottomIsPro = false,
 }: Props) {
   const t = useT();
   const counts = countPieces(state.board);
@@ -40,6 +44,7 @@ export function GameSidebar({
     kings,
     isTurn,
     timeMs,
+    isPro,
   }: {
     color: Color;
     label: string;
@@ -47,6 +52,7 @@ export function GameSidebar({
     kings: number;
     isTurn: boolean;
     timeMs?: number;
+    isPro?: boolean;
   }) {
     const isWhite = color === "white";
     return (
@@ -72,7 +78,16 @@ export function GameSidebar({
             )}
           />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate">{label}</div>
+            <div className="text-sm font-semibold truncate flex items-center gap-1.5">
+              {isPro && (
+                <Crown
+                  className="w-3.5 h-3.5 text-gold-bright flex-shrink-0"
+                  fill="currentColor"
+                  fillOpacity={0.3}
+                />
+              )}
+              <span className="truncate">{label}</span>
+            </div>
             <div className="text-xs text-ink-soft flex gap-2">
               <span>{t("sidebar.pieces", { n: 12 - captured })}</span>
               {kings > 0 && <span className="text-gold">👑 {kings}</span>}
@@ -135,6 +150,7 @@ export function GameSidebar({
         kings={opponentColor === "white" ? counts.whiteKings : counts.blackKings}
         isTurn={turn === opponentColor && !state.winner}
         timeMs={timer ? timer[opponentColor] : undefined}
+        isPro={topIsPro}
       />
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
@@ -171,6 +187,7 @@ export function GameSidebar({
         kings={yourColor === "white" ? counts.whiteKings : counts.blackKings}
         isTurn={turn === yourColor && !state.winner}
         timeMs={timer ? timer[yourColor] : undefined}
+        isPro={bottomIsPro}
       />
     </div>
   );
