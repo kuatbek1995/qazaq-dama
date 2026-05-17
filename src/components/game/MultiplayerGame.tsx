@@ -439,6 +439,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
         {identityLoaded && !myIdentity && (
           <IdentityModal
             required
+            hideCityField
             onClose={() => {}}
             onSave={(id) => {
               setMyIdentity(id);
@@ -450,7 +451,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
               });
             }}
             title="Введи своё имя"
-            description="Соперник увидит твоё имя и город. После этого начнётся партия."
+            description="Соперник увидит твоё имя. После этого начнётся партия."
             submitLabel="Начать"
           />
         )}

@@ -14,6 +14,7 @@ type Props = {
   required?: boolean;
   description?: string;
   submitLabel?: string;
+  hideCityField?: boolean;
 };
 
 export function IdentityModal({
@@ -24,6 +25,7 @@ export function IdentityModal({
   required = false,
   description,
   submitLabel,
+  hideCityField = false,
 }: Props) {
   const [nickname, setNickname] = useState(initial?.nickname ?? "");
   const [city, setCity] = useState<KzCity>(initial?.city ?? "Алматы");
@@ -75,22 +77,25 @@ export function IdentityModal({
           />
         </label>
 
-        <label className="block mb-6">
-          <span className="text-xs uppercase tracking-widest text-ink-soft mb-2 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5" /> Город
-          </span>
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value as KzCity)}
-            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-ink outline-none focus:border-gold transition-colors"
-          >
-            {KZ_CITIES.map((c) => (
-              <option key={c} value={c} className="bg-[#0c1729]">
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!hideCityField && (
+          <label className="block mb-6">
+            <span className="text-xs uppercase tracking-widest text-ink-soft mb-2 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5" /> Город
+            </span>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value as KzCity)}
+              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-ink outline-none focus:border-gold transition-colors"
+            >
+              {KZ_CITIES.map((c) => (
+                <option key={c} value={c} className="bg-[#0c1729]">
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {hideCityField && <div className="mb-2" />}
 
         {error && (
           <div className="mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300">
