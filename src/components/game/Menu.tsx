@@ -59,12 +59,20 @@ export function Menu({
   const handleLogout = () => {
     if (!confirm(t("menu.profile.logout.confirm"))) return;
     try {
-      // Full wipe — the next person on this device starts as a brand-new user.
-      localStorage.removeItem("qazaq-dama:identity-v1");
-      localStorage.removeItem("qazaq-dama:pro-v1");
-      localStorage.removeItem("qazaq-dama:board-theme-v1");
-      localStorage.removeItem("qazaq-dama:locale-v1");
-      localStorage.removeItem("qazaq-dama:locale-picked-v1");
+      // Full wipe — sweep every "qazaq-dama:*" key so the next person on
+      // this device starts truly fresh. Generic prefix scan so future keys
+      // are cleared automatically without touching this function.
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("qazaq-dama:")) toRemove.push(k);
+      }
+      for (const k of toRemove) localStorage.removeItem(k);
+      // Also clear sessionStorage on the off-chance something landed there.
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith("qazaq-dama:")) sessionStorage.removeItem(k);
+      }
     } catch {
       // ignore
     }
