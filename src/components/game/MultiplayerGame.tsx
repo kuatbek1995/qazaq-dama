@@ -375,9 +375,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const durationSec = Math.floor((Date.now() - startedAt) / 1000);
   const modeLabel = "Онлайн · мультиплеер";
   const colorLabel = myColor === "white" ? "золотые" : "синие";
-  const topLabel = opponentIdentity
-    ? `${opponentIdentity.nickname} · ${opponentIdentity.city}`
-    : "Соперник";
+  const topLabel = opponentIdentity ? opponentIdentity.nickname : "Соперник";
   const bottomLabel = myIdentity
     ? `${myIdentity.nickname} · ${myIdentity.city} (${colorLabel})`
     : `Вы (${colorLabel})`;
