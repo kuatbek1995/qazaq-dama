@@ -4,9 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import confetti from "canvas-confetti";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Crown, Loader2, Sparkles } from "lucide-react";
 import { saveProStatus } from "@/lib/pro";
+import { ThemePickerModal } from "@/components/ThemePickerModal";
 
 type VerifyState = "loading" | "ok" | "failed";
 
@@ -33,6 +34,7 @@ function ProSuccessInner() {
     sessionId ? "loading" : "ok",
   );
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [showThemes, setShowThemes] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -76,6 +78,9 @@ function ProSuccessInner() {
     fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
     fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
     fire(0.1, { spread: 120, startVelocity: 45 });
+
+    const t = setTimeout(() => setShowThemes(true), 1800);
+    return () => clearTimeout(t);
   }, [verifyState]);
 
   return (
@@ -138,11 +143,17 @@ function ProSuccessInner() {
               href="/"
               className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold hover:scale-[1.02] transition-transform shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)]"
             >
-              Выбрать тему доски →
+              Перейти в игру →
             </Link>
           </>
         )}
       </motion.div>
+
+      <AnimatePresence>
+        {showThemes && (
+          <ThemePickerModal isPro onClose={() => setShowThemes(false)} />
+        )}
+      </AnimatePresence>
     </main>
   );
 }
