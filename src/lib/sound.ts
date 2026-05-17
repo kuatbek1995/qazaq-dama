@@ -11,6 +11,9 @@ class SoundManager {
   private muted = false;
   private menuAmbient: AmbientHandle | null = null;
   private gameAmbient: AmbientHandle | null = null;
+  private menuAudio: HTMLAudioElement | null = null;
+  private gameAudio: HTMLAudioElement | null = null;
+  private readonly MUSIC_VOLUME = 0.35;
 
   init() {
     if (typeof window === "undefined") return;
@@ -48,6 +51,8 @@ class SoundManager {
     if (this.masterGain) {
       this.masterGain.gain.value = this.muted ? 0 : 1;
     }
+    if (this.menuAudio) this.menuAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
+    if (this.gameAudio) this.gameAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
     return this.muted;
   }
 
@@ -172,37 +177,45 @@ class SoundManager {
   // === Ambient backgrounds ===
 
   startMenuAmbient() {
-    if (this.menuAmbient) return;
-    this.menuAmbient = this.makeAmbient({
-      // Bright C major 9 (C-E-G-D) — uplifting, optimistic
-      rootFreq: 261.63, // C4
-      intervals: [1, 1.25, 1.5, 2.25], // root + major third + fifth + ninth
-      filterFreq: 1400,
-      lfoRate: 0.18,
-      gain: 0.06,
-      bell: true,
+    if (typeof window === "undefined") return;
+    if (!this.menuAudio) {
+      this.menuAudio = new Audio("/sounds/menu.mp3");
+      this.menuAudio.loop = true;
+      this.menuAudio.preload = "auto";
+    }
+    this.menuAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
+    this.menuAudio.currentTime = 0;
+    this.menuAudio.play().catch(() => {
+      // Autoplay blocked until user interaction — that's OK, will play on next click.
     });
   }
 
   stopMenuAmbient() {
+    if (this.menuAudio) {
+      this.menuAudio.pause();
+      this.menuAudio.currentTime = 0;
+    }
     this.menuAmbient?.stop();
     this.menuAmbient = null;
   }
 
   startGameAmbient() {
-    if (this.gameAmbient) return;
-    this.gameAmbient = this.makeAmbient({
-      // F major 6 (F-A-C-D) — warm, focused but cheerful
-      rootFreq: 174.61, // F3
-      intervals: [1, 1.25, 1.5, 1.667], // root + major third + fifth + sixth
-      filterFreq: 1100,
-      lfoRate: 0.12,
-      gain: 0.05,
-      bell: true,
-    });
+    if (typeof window === "undefined") return;
+    if (!this.gameAudio) {
+      this.gameAudio = new Audio("/sounds/game.mp3");
+      this.gameAudio.loop = true;
+      this.gameAudio.preload = "auto";
+    }
+    this.gameAudio.volume = this.muted ? 0 : this.MUSIC_VOLUME;
+    this.gameAudio.currentTime = 0;
+    this.gameAudio.play().catch(() => {});
   }
 
   stopGameAmbient() {
+    if (this.gameAudio) {
+      this.gameAudio.pause();
+      this.gameAudio.currentTime = 0;
+    }
     this.gameAmbient?.stop();
     this.gameAmbient = null;
   }
