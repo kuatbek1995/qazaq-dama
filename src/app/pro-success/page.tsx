@@ -7,6 +7,7 @@ import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Crown, Loader2, Sparkles } from "lucide-react";
 import { saveProStatus } from "@/lib/pro";
+import { useT } from "@/lib/i18n";
 import { ThemePickerModal } from "@/components/ThemePickerModal";
 
 type VerifyState = "loading" | "ok" | "failed";
@@ -28,6 +29,7 @@ function LoadingShell() {
 }
 
 function ProSuccessInner() {
+  const t = useT();
   const params = useSearchParams();
   const sessionId = params.get("session_id");
   const [verifyState, setVerifyState] = useState<VerifyState>(
@@ -53,14 +55,14 @@ function ProSuccessInner() {
           setVerifyState("ok");
         } else {
           setVerifyState("failed");
-          setVerifyError(data.error || "Не удалось подтвердить оплату");
+          setVerifyError(data.error || t("proSuccess.failed.title"));
         }
       })
       .catch((e) => {
         setVerifyState("failed");
-        setVerifyError(e instanceof Error ? e.message : "Сетевая ошибка");
+        setVerifyError(e instanceof Error ? e.message : t("proSuccess.failed.title"));
       });
-  }, [sessionId]);
+  }, [sessionId, t]);
 
   useEffect(() => {
     if (verifyState !== "ok") return;
@@ -103,7 +105,7 @@ function ProSuccessInner() {
         {verifyState === "loading" && (
           <>
             <h1 className="font-display text-3xl font-bold gold-text mb-3">
-              Подтверждаем оплату…
+              {t("proSuccess.loading")}
             </h1>
             <Loader2 className="w-8 h-8 text-gold-bright animate-spin mx-auto" />
           </>
@@ -113,14 +115,14 @@ function ProSuccessInner() {
           <>
             <AlertCircle className="w-12 h-12 text-danger mx-auto mb-3" />
             <h1 className="font-display text-2xl font-bold text-ink mb-2">
-              Не удалось подтвердить оплату
+              {t("proSuccess.failed.title")}
             </h1>
             <p className="text-ink-soft text-sm mb-6">{verifyError}</p>
             <Link
               href="/"
               className="inline-block px-6 py-3 rounded-xl bg-white/10 text-ink font-bold hover:bg-white/20 transition-all"
             >
-              Вернуться к игре
+              {t("proSuccess.failed.button")}
             </Link>
           </>
         )}
@@ -128,14 +130,14 @@ function ProSuccessInner() {
         {verifyState === "ok" && (
           <>
             <h1 className="font-display text-4xl font-bold gold-text mb-3">
-              Добро пожаловать в Pro!
+              {t("proSuccess.ok.title")}
             </h1>
             <p className="text-ink-soft mb-6">
-              Спасибо за поддержку Qazaq Dama 🇰🇿
+              {t("proSuccess.ok.body")}
               <br />
               <span className="inline-flex items-center gap-1 text-gold mt-2">
                 <Sparkles className="w-4 h-4" />
-                Темы досок и Pro-фишки активированы
+                {t("proSuccess.ok.badge")}
               </span>
             </p>
 
@@ -143,7 +145,7 @@ function ProSuccessInner() {
               href="/"
               className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold hover:scale-[1.02] transition-transform shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)]"
             >
-              Перейти в игру →
+              {t("proSuccess.ok.button")}
             </Link>
           </>
         )}

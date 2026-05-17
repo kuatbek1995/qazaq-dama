@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Crown, Lock, Sparkles, X } from "lucide-react";
 import { THEMES, loadTheme, saveTheme, type BoardTheme } from "@/lib/pro";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function ThemePickerModal({ onClose, isPro }: Props) {
+  const t = useT();
   const savedTheme = loadTheme();
   const [current, setCurrent] = useState<BoardTheme>(savedTheme);
   const dirty = current !== savedTheme;
@@ -52,25 +54,25 @@ export function ThemePickerModal({ onClose, isPro }: Props) {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/15 border border-gold/30 mb-3">
             <Crown className="w-3 h-3 text-gold-bright" />
             <span className="text-xs font-bold text-gold uppercase tracking-wider">
-              {isPro ? "Pro активен" : "Темы досок"}
+              {isPro ? t("themes.badge.proActive") : t("themes.badge.noPro")}
             </span>
           </div>
-          <h2 className="font-display text-3xl font-bold gold-text mb-1">Выбери тему доски</h2>
+          <h2 className="font-display text-3xl font-bold gold-text mb-1">{t("themes.title")}</h2>
           {!isPro && (
             <p className="text-xs text-ink-soft mt-2">
-              <Sparkles className="inline w-3 h-3 text-gold-bright" /> Премиум-темы открываются с Pro
+              <Sparkles className="inline w-3 h-3 text-gold-bright" /> {t("themes.hint")}
             </p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {THEMES.map((t) => {
-            const locked = t.pro && !isPro;
-            const active = current === t.id;
+          {THEMES.map((theme) => {
+            const locked = theme.pro && !isPro;
+            const active = current === theme.id;
             return (
               <button
-                key={t.id}
-                onClick={() => handlePick(t.id, locked)}
+                key={theme.id}
+                onClick={() => handlePick(theme.id, locked)}
                 disabled={locked}
                 className={cn(
                   "relative rounded-xl border-2 p-3 transition-all text-left",
@@ -87,18 +89,22 @@ export function ThemePickerModal({ onClose, isPro }: Props) {
                     return (
                       <div
                         key={i}
-                        style={{ background: dark ? PREVIEW[t.id].dark : PREVIEW[t.id].light }}
+                        style={{ background: dark ? PREVIEW[theme.id].dark : PREVIEW[theme.id].light }}
                       />
                     );
                   })}
                 </div>
                 <div className="flex items-center gap-1.5">
-                  {t.pro && (
+                  {theme.pro && (
                     <Crown className="w-3 h-3 text-gold-bright flex-shrink-0" />
                   )}
-                  <p className="text-sm font-semibold text-ink truncate">{t.name}</p>
+                  <p className="text-sm font-semibold text-ink truncate">
+                    {t(`themes.${theme.id}.name`)}
+                  </p>
                 </div>
-                <p className="text-[11px] text-ink-soft/70 truncate">{t.subtitle}</p>
+                <p className="text-[11px] text-ink-soft/70 truncate">
+                  {t(`themes.${theme.id}.sub`)}
+                </p>
 
                 {active && (
                   <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-gold flex items-center justify-center">
@@ -120,7 +126,7 @@ export function ThemePickerModal({ onClose, isPro }: Props) {
           disabled={!dirty}
           className="w-full mt-5 px-5 py-3 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
         >
-          {dirty ? "Применить" : "Тема уже применена"}
+          {dirty ? t("themes.apply") : t("themes.alreadyApplied")}
         </button>
       </motion.div>
     </motion.div>

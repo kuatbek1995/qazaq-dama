@@ -5,6 +5,7 @@ import { MapPin, User } from "lucide-react";
 import { useState } from "react";
 import { KZ_CITIES, type KzCity } from "@/lib/supabase";
 import { saveIdentity, type Identity } from "@/lib/identity";
+import { useT } from "@/lib/i18n";
 
 type Props = {
   initial?: Identity;
@@ -27,6 +28,7 @@ export function IdentityModal({
   submitLabel,
   hideCityField = false,
 }: Props) {
+  const t = useT();
   const [nickname, setNickname] = useState(initial?.nickname ?? "");
   const [city, setCity] = useState<KzCity>(initial?.city ?? "Алматы");
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function IdentityModal({
     const identity: Identity = { nickname: trimmed, city };
     const ok = saveIdentity(identity);
     if (!ok) {
-      setError("Не удалось сохранить. Проверь, не выключен ли private mode в браузере.");
+      setError(t("identity.error.save"));
       return;
     }
     onSave(identity);
@@ -57,22 +59,22 @@ export function IdentityModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-display text-3xl font-bold gold-text mb-2">
-          {title ?? "Кто ты, чемпион?"}
+          {title ?? t("identity.title")}
         </h2>
         <p className="text-ink-soft text-sm mb-6">
-          {description ?? "Имя и город попадут в лидерборд. Можешь сменить в любой момент."}
+          {description ?? t("identity.description")}
         </p>
 
         <label className="block mb-4">
           <span className="text-xs uppercase tracking-widest text-ink-soft mb-2 flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5" /> Имя
+            <User className="w-3.5 h-3.5" /> {t("identity.field.name")}
           </span>
           <input
             type="text"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
-            placeholder="Айдар"
+            placeholder={t("identity.name.placeholder")}
             className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-ink placeholder-ink-soft/40 outline-none focus:border-gold transition-colors"
           />
         </label>
@@ -80,7 +82,7 @@ export function IdentityModal({
         {!hideCityField && (
           <label className="block mb-6">
             <span className="text-xs uppercase tracking-widest text-ink-soft mb-2 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Город
+              <MapPin className="w-3.5 h-3.5" /> {t("identity.field.city")}
             </span>
             <select
               value={city}
@@ -109,7 +111,7 @@ export function IdentityModal({
               onClick={onClose}
               className="flex-1 px-4 py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors text-sm font-medium"
             >
-              Позже
+              {t("identity.button.later")}
             </button>
           )}
           <button
@@ -117,7 +119,7 @@ export function IdentityModal({
             disabled={nickname.trim().length < 2}
             className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-gold to-gold-deep text-[#1c1206] hover:from-gold-bright hover:to-gold transition-colors text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitLabel ?? "Сохранить"}
+            {submitLabel ?? t("identity.button.save")}
           </button>
         </div>
       </motion.div>

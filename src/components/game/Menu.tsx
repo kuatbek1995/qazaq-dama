@@ -8,9 +8,11 @@ import type { Difficulty } from "@/lib/checkers/types";
 import { cn } from "@/lib/utils";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import { applyTheme, loadProStatus, loadTheme, type ProStatus } from "@/lib/pro";
+import { LOCALE_INFO, useLocale, useT } from "@/lib/i18n";
 import { IdentityModal } from "@/components/IdentityModal";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
 import { ThemePickerModal } from "@/components/ThemePickerModal";
+import { LanguagePickerModal } from "@/components/LanguagePickerModal";
 import { SoundToggle } from "@/components/SoundToggle";
 import { sound } from "@/lib/sound";
 
@@ -31,11 +33,14 @@ export function Menu({
   hasSavedGame,
   onContinue,
 }: Props) {
+  const t = useT();
+  const { locale, hasPicked, ready: localeReady } = useLocale();
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [pro, setPro] = useState<ProStatus | null>(null);
   const [showIdentity, setShowIdentity] = useState(false);
   const [showPro, setShowPro] = useState(false);
   const [showThemes, setShowThemes] = useState(false);
+  const [showLang, setShowLang] = useState(false);
 
   useEffect(() => {
     setIdentity(loadIdentity());
@@ -46,12 +51,26 @@ export function Menu({
     return () => sound.stopMenuAmbient();
   }, []);
 
+  useEffect(() => {
+    if (localeReady && !hasPicked) {
+      setShowLang(true);
+    }
+  }, [localeReady, hasPicked]);
+
   const isPro = pro !== null;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 ornament-bg relative">
-      {/* Top-right: identity + Pro + sound */}
+      {/* Top-right: lang + identity + Pro + sound */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
         <SoundToggle />
+        <button
+          onClick={() => setShowLang(true)}
+          aria-label="Change language"
+          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 border border-white/10 hover:border-gold/40 hover:bg-white/10 transition-all text-base leading-none"
+          title={LOCALE_INFO[locale].nativeName}
+        >
+          <span>{LOCALE_INFO[locale].flag}</span>
+        </button>
         <button
           onClick={() => setShowIdentity(true)}
           className={cn(
@@ -73,7 +92,7 @@ export function Menu({
           ) : (
             <>
               {!isPro && <User className="w-3 h-3" />}
-              Назваться
+              {t("menu.identity.name")}
             </>
           )}
         </button>
@@ -83,7 +102,7 @@ export function Menu({
             className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] hover:from-gold hover:to-gold-deep transition-all flex items-center gap-1.5 shadow-[0_4px_14px_-2px_rgba(240,193,75,0.5)]"
           >
             <Palette className="w-3 h-3" />
-            Темы
+            {t("menu.pro.themes")}
           </button>
         ) : (
           <button
@@ -91,7 +110,7 @@ export function Menu({
             className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] hover:from-gold hover:to-gold-deep transition-all flex items-center gap-1.5 shadow-[0_4px_14px_-2px_rgba(240,193,75,0.5)]"
           >
             <Crown className="w-3 h-3" />
-            Upgrade to Pro
+            {t("menu.pro.upgrade")}
           </button>
         )}
       </div>
@@ -116,11 +135,9 @@ export function Menu({
           </h1>
         </div>
         <p className="text-lg md:text-xl text-ink-soft mb-2 font-display italic">
-          Шашки нового поколения. Қазақстаннан әлемге.
+          {t("menu.subtitle")}
         </p>
-        <p className="text-sm text-ink-soft/70">
-          3-минутные дуэли · Игра с ИИ · Мультиплеер по ссылке · Лидерборд городов
-        </p>
+        <p className="text-sm text-ink-soft/70">{t("menu.subline")}</p>
       </motion.div>
 
       {hasSavedGame && onContinue && (
@@ -131,7 +148,7 @@ export function Menu({
           className="mb-8 px-6 py-3 rounded-full bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] text-sm font-semibold flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(240,193,75,0.6)] hover:scale-105 transition-transform"
         >
           <Sparkles className="w-4 h-4" />
-          Продолжить сохранённую партию
+          {t("menu.continueSaved")}
         </motion.button>
       )}
 
@@ -146,24 +163,24 @@ export function Menu({
       >
         <ModeCard
           icon={<Users className="w-6 h-6" />}
-          title="С другом за одним экраном"
-          desc="Hot-seat. Передавайте устройство по очереди."
+          title={t("menu.hotseat.title")}
+          desc={t("menu.hotseat.desc")}
           accent="silver"
           onClick={onStartHotseat}
         />
         <ModeCard
           icon={<Link2 className="w-6 h-6" />}
-          title="Онлайн по ссылке"
-          desc="Создайте партию, отправьте ссылку другу."
+          title={t("menu.online.title")}
+          desc={t("menu.online.desc")}
           accent="blue"
           onClick={onCreateMultiplayer}
-          badge="Realtime"
+          badge={t("menu.online.badge")}
         />
         <DifficultyCard onStart={onStartAI} />
         <ModeCard
           icon={<Trophy className="w-6 h-6" />}
-          title="Лидерборд городов"
-          desc="Топ игроков из Алматы, Астаны, Караганды…"
+          title={t("menu.leaderboard.title")}
+          desc={t("menu.leaderboard.desc")}
           accent="gold"
           onClick={onOpenLeaderboard}
         />
@@ -175,7 +192,7 @@ export function Menu({
         transition={{ delay: 1 }}
         className="mt-16 text-xs text-ink-soft/50 text-center"
       >
-        Сделано в Қазақстан · v1.0
+        {t("menu.footer")}
       </motion.div>
 
       <AnimatePresence>
@@ -192,6 +209,12 @@ export function Menu({
         {showPro && <ProUpgradeModal onClose={() => setShowPro(false)} />}
         {showThemes && (
           <ThemePickerModal isPro={isPro} onClose={() => setShowThemes(false)} />
+        )}
+        {showLang && (
+          <LanguagePickerModal
+            forced={!hasPicked}
+            onClose={() => setShowLang(false)}
+          />
         )}
       </AnimatePresence>
     </div>
@@ -253,10 +276,11 @@ function ModeCard({
 }
 
 function DifficultyCard({ onStart }: { onStart: (d: Difficulty) => void }) {
+  const t = useT();
   const levels: { d: Difficulty; label: string; sub: string; icon: React.ReactNode }[] = [
-    { d: "easy", label: "Лёгкий", sub: "только для разминки", icon: <Sparkles className="w-3.5 h-3.5" /> },
-    { d: "medium", label: "Средний", sub: "тренировка ума", icon: <Zap className="w-3.5 h-3.5" /> },
-    { d: "hard", label: "Сложный", sub: "тебе будет туго", icon: <Cpu className="w-3.5 h-3.5" /> },
+    { d: "easy", label: t("menu.ai.easy"), sub: t("menu.ai.easy.sub"), icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { d: "medium", label: t("menu.ai.medium"), sub: t("menu.ai.medium.sub"), icon: <Zap className="w-3.5 h-3.5" /> },
+    { d: "hard", label: t("menu.ai.hard"), sub: t("menu.ai.hard.sub"), icon: <Cpu className="w-3.5 h-3.5" /> },
   ];
   return (
     <motion.div
@@ -268,11 +292,11 @@ function DifficultyCard({ onStart }: { onStart: (d: Difficulty) => void }) {
           <Bot className="w-6 h-6" />
         </div>
         <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-gold/20 text-gold font-semibold">
-          3 уровня
+          {t("menu.ai.badge")}
         </span>
       </div>
-      <h3 className="font-display text-xl font-semibold text-ink mb-1">Против ИИ</h3>
-      <p className="text-sm text-ink-soft/80 mb-4">Minimax + alpha-beta. Выбирай сложность:</p>
+      <h3 className="font-display text-xl font-semibold text-ink mb-1">{t("menu.ai.title")}</h3>
+      <p className="text-sm text-ink-soft/80 mb-4">{t("menu.ai.desc")}</p>
       <div className="flex flex-col gap-2">
         {levels.map((l) => (
           <motion.button

@@ -4,18 +4,20 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Crown, Loader2, Sparkles, X, Zap } from "lucide-react";
 import { isPro } from "@/lib/pro";
+import { useT } from "@/lib/i18n";
 
 type Props = { onClose: () => void };
 
-const FEATURES = [
-  { icon: <Sparkles className="w-4 h-4" />, text: "Эксклюзивные темы досок: «Юрта», «Степь», «Тенгри»" },
-  { icon: <Crown className="w-4 h-4" />, text: "Кастомные дизайны шашек (золотые орнаменты, лазуритовые)" },
-  { icon: <Zap className="w-4 h-4" />, text: "Безлимитный AI-разбор + персональный план тренировок" },
-  { icon: <Check className="w-4 h-4" />, text: "Турниры на 4-8 игроков и приватные комнаты" },
-  { icon: <Check className="w-4 h-4" />, text: "Без рекламы навсегда" },
+const FEATURE_KEYS = [
+  { icon: <Sparkles className="w-4 h-4" />, key: "pro.feat.themes" },
+  { icon: <Crown className="w-4 h-4" />, key: "pro.feat.pieces" },
+  { icon: <Zap className="w-4 h-4" />, key: "pro.feat.coach" },
+  { icon: <Check className="w-4 h-4" />, key: "pro.feat.tournaments" },
+  { icon: <Check className="w-4 h-4" />, key: "pro.feat.noAds" },
 ];
 
 export function ProUpgradeModal({ onClose }: Props) {
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyPro, setAlreadyPro] = useState(false);
@@ -31,11 +33,11 @@ export function ProUpgradeModal({ onClose }: Props) {
       const res = await fetch("/api/checkout", { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.url) {
-        throw new Error(data.error || "Не удалось создать оплату");
+        throw new Error(data.error || t("proSuccess.checkout.error"));
       }
       window.location.href = data.url;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Что-то пошло не так");
+      setError(e instanceof Error ? e.message : t("proSuccess.checkout.error"));
       setLoading(false);
     }
   };
@@ -71,24 +73,24 @@ export function ProUpgradeModal({ onClose }: Props) {
           >
             <Crown className="w-8 h-8 text-[#1c1206]" fill="currentColor" fillOpacity={0.3} />
           </motion.div>
-          <h2 className="font-display text-4xl font-bold gold-text mb-1">Qazaq Dama Pro</h2>
-          <p className="text-ink-soft text-sm">Поддержи проект и получи всё</p>
+          <h2 className="font-display text-4xl font-bold gold-text mb-1">{t("pro.title")}</h2>
+          <p className="text-ink-soft text-sm">{t("pro.subtitle")}</p>
         </div>
 
         <div className="rounded-2xl bg-gradient-to-br from-gold/15 to-gold-deep/5 border border-gold/30 p-5 mb-5">
           <div className="flex items-baseline justify-center gap-2 mb-2">
             <span className="text-4xl font-bold gold-text">$2</span>
-            <span className="text-sm text-ink-soft">/мес</span>
+            <span className="text-sm text-ink-soft">{t("pro.price.suffix")}</span>
           </div>
           <div className="text-center text-xs text-gold uppercase tracking-widest">
-            Early bird · первые 1000 пользователей
+            {t("pro.earlyBird")}
           </div>
         </div>
 
         <ul className="space-y-3 mb-6">
-          {FEATURES.map((f, i) => (
+          {FEATURE_KEYS.map((f, i) => (
             <motion.li
-              key={i}
+              key={f.key}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15 + i * 0.05 }}
@@ -97,7 +99,7 @@ export function ProUpgradeModal({ onClose }: Props) {
               <span className="mt-0.5 w-6 h-6 rounded-full bg-gold/20 text-gold-bright flex items-center justify-center flex-shrink-0">
                 {f.icon}
               </span>
-              <span className="text-ink">{f.text}</span>
+              <span className="text-ink">{t(f.key)}</span>
             </motion.li>
           ))}
         </ul>
@@ -106,9 +108,9 @@ export function ProUpgradeModal({ onClose }: Props) {
           <div className="w-full px-5 py-3.5 rounded-xl bg-gold/15 border border-gold/40 text-center">
             <p className="text-gold-bright font-bold flex items-center justify-center gap-2">
               <Crown className="w-4 h-4" fill="currentColor" fillOpacity={0.3} />
-              Ты уже Pro!
+              {t("pro.already.title")}
             </p>
-            <p className="text-xs text-ink-soft mt-1">Спасибо за поддержку 🙏</p>
+            <p className="text-xs text-ink-soft mt-1">{t("pro.already.subtitle")}</p>
           </div>
         ) : (
           <button
@@ -120,12 +122,12 @@ export function ProUpgradeModal({ onClose }: Props) {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Открываем Stripe…
+                {t("pro.button.loading")}
               </>
             ) : (
               <>
                 <Crown className="w-4 h-4" />
-                Получить Pro
+                {t("pro.button.get")}
               </>
             )}
           </button>
@@ -139,12 +141,12 @@ export function ProUpgradeModal({ onClose }: Props) {
           /* TODO: remove this hint after nFactorial jury demo — meant for testing only */
           <div className="mt-4 rounded-lg bg-blue-500/10 border border-blue-500/30 p-3">
             <p className="text-center text-xs text-blue-200 font-semibold mb-1">
-              🧪 Тестовый режим
+              {t("pro.test.title")}
             </p>
             <p className="text-center text-[11px] text-blue-200/80 leading-relaxed">
-              Карта: <code className="font-mono text-blue-100">4242 4242 4242 4242</code>
+              {t("pro.test.card")} <code className="font-mono text-blue-100">4242 4242 4242 4242</code>
               <br />
-              Срок: любая будущая дата · CVC: любые 3 цифры
+              {t("pro.test.line2")}
             </p>
           </div>
         )}
