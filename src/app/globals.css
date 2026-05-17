@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Kazakhstan-inspired palette */
+  --bg-deep: #050913;
+  --bg-mid: #0c1729;
+  --bg-soft: #14223d;
+  --gold: #f0c14b;
+  --gold-bright: #ffd970;
+  --gold-deep: #a87413;
+  --kz-blue: #00afca;
+  --kz-blue-deep: #006c8a;
+  --ink: #f4e9c1;
+  --ink-soft: #cdb78a;
+  --danger: #ff5d6c;
+  --board-light: #e9d2a0;
+  --board-dark: #1a3a5c;
+
+  --background: var(--bg-deep);
+  --foreground: var(--ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-deep: var(--gold-deep);
+  --color-kz-blue: var(--kz-blue);
+  --color-kz-blue-deep: var(--kz-blue-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-board-light: var(--board-light);
+  --color-board-dark: var(--board-dark);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-cormorant);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(240, 193, 75, 0.12), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0, 175, 202, 0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  min-height: 100%;
+  overflow-x: hidden;
 }
+
+/* Kazakh ornament-inspired SVG pattern for accents */
+.ornament-bg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%23f0c14b' stroke-opacity='0.07' stroke-width='1'><path d='M30 5 L55 30 L30 55 L5 30 Z'/><circle cx='30' cy='30' r='10'/><path d='M30 20 L40 30 L30 40 L20 30 Z'/></g></svg>");
+  background-size: 60px 60px;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 12px 2px rgba(240, 193, 75, 0.5); }
+  50% { box-shadow: 0 0 28px 6px rgba(240, 193, 75, 0.9); }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+.glow-gold {
+  animation: pulse-glow 1.6s ease-in-out infinite;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 50%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Beautiful selection state */
+*::selection {
+  background: var(--gold);
+  color: var(--bg-deep);
+}
+
+/* Scroll bar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-mid); }
+::-webkit-scrollbar-thumb { background: var(--gold-deep); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
