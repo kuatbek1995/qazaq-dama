@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { Color, Coord, GameState, Move } from "@/lib/checkers/types";
-import { isDarkSquare } from "@/lib/checkers/engine";
+import { getLegalMoves, isDarkSquare } from "@/lib/checkers/engine";
 import { Piece } from "./Piece";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,11 @@ export function Board({
       captureSet.add(`${cap.r},${cap.c}`);
     }
   }
+
+  // Compute which pieces of the current player CAN move (for "click hint" glow).
+  const allLegal = !disabled && !state.winner ? getLegalMoves(state) : [];
+  const movableSet = new Set(allLegal.map((m) => `${m.from.r},${m.from.c}`));
+  const mustCapture = allLegal.some((m) => m.captures.length > 0);
 
   return (
     <div className="relative w-full max-w-[640px] mx-auto">
@@ -142,25 +147,24 @@ export function Board({
           <div className="absolute inset-0 pointer-events-none">
             <AnimatePresence>
               {state.board.flatMap((row, r) =>
-                row.map((piece, c) =>
-                  piece ? (
+                row.map((piece, c) => {
+                  const key = `${r},${c}`;
+                  const isMovable = movableSet.has(key);
+                  return piece ? (
                     <Piece
                       key={piece.id}
                       piece={piece}
                       r={r}
                       c={c}
                       selected={selected?.r === r && selected?.c === c}
-                      highlight={
-                        !selected &&
-                        piece.color === state.turn &&
-                        possibleMoves.length === 0
-                      }
+                      highlight={isMovable && !selected}
+                      urgent={isMovable && mustCapture && !selected}
                       perspective={perspective}
                       cellPct={CELL}
                       onClick={() => !disabled && onSquareClick(r, c)}
                     />
-                  ) : null,
-                ),
+                  ) : null;
+                }),
               )}
             </AnimatePresence>
           </div>

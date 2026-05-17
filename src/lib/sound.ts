@@ -174,11 +174,13 @@ class SoundManager {
   startMenuAmbient() {
     if (this.menuAmbient) return;
     this.menuAmbient = this.makeAmbient({
-      rootFreq: 146.83, // D3
-      intervals: [1, 1.5, 2.25], // root + fifth + ninth
-      filterFreq: 600,
-      lfoRate: 0.07,
-      gain: 0.08,
+      // Bright C major 9 (C-E-G-D) — uplifting, optimistic
+      rootFreq: 261.63, // C4
+      intervals: [1, 1.25, 1.5, 2.25], // root + major third + fifth + ninth
+      filterFreq: 1400,
+      lfoRate: 0.18,
+      gain: 0.06,
+      bell: true,
     });
   }
 
@@ -190,11 +192,13 @@ class SoundManager {
   startGameAmbient() {
     if (this.gameAmbient) return;
     this.gameAmbient = this.makeAmbient({
-      rootFreq: 110, // A2
-      intervals: [1, 1.5, 1.875], // root + fifth + minor seventh
-      filterFreq: 450,
-      lfoRate: 0.05,
-      gain: 0.07,
+      // F major 6 (F-A-C-D) — warm, focused but cheerful
+      rootFreq: 174.61, // F3
+      intervals: [1, 1.25, 1.5, 1.667], // root + major third + fifth + sixth
+      filterFreq: 1100,
+      lfoRate: 0.12,
+      gain: 0.05,
+      bell: true,
     });
   }
 
@@ -216,6 +220,7 @@ class SoundManager {
     filterFreq: number;
     lfoRate: number;
     gain: number;
+    bell?: boolean;
   }): AmbientHandle {
     const ctx = this.ensureCtx();
     if (!ctx || !this.masterGain) {
@@ -224,16 +229,16 @@ class SoundManager {
     const now = ctx.currentTime;
     const ambientGain = ctx.createGain();
     ambientGain.gain.setValueAtTime(0, now);
-    ambientGain.gain.linearRampToValueAtTime(opts.gain, now + 2.5);
+    ambientGain.gain.linearRampToValueAtTime(opts.gain, now + 2.0);
     const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
     filter.frequency.value = opts.filterFreq;
-    filter.Q.value = 4;
+    filter.Q.value = 3;
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = "sine";
     lfo.frequency.value = opts.lfoRate;
-    lfoGain.gain.value = 120;
+    lfoGain.gain.value = 250;
     lfo.connect(lfoGain);
     lfoGain.connect(filter.frequency);
     lfo.start(now);
@@ -241,10 +246,9 @@ class SoundManager {
     const oscs: OscillatorNode[] = [];
     opts.intervals.forEach((mult, i) => {
       const osc = ctx.createOscillator();
-      osc.type = i === 0 ? "sawtooth" : "triangle";
+      osc.type = i === 0 ? "triangle" : "sine"; // brighter, less buzzy
       osc.frequency.value = opts.rootFreq * mult;
-      // Slight detune for richness
-      osc.detune.value = (i - 1) * 6;
+      osc.detune.value = (i - 1) * 4;
       osc.connect(filter);
       osc.start(now);
       oscs.push(osc);
@@ -252,10 +256,39 @@ class SoundManager {
     filter.connect(ambientGain);
     ambientGain.connect(this.masterGain);
 
+    // Occasional bell-like sparkle on top
+    let bellInterval: ReturnType<typeof setInterval> | null = null;
+    if (opts.bell) {
+      const playBell = () => {
+        if (!this.ctx || !this.masterGain) return;
+        const bt = this.ctx.currentTime;
+        const noteIdx = Math.floor(Math.random() * opts.intervals.length);
+        const freq = opts.rootFreq * opts.intervals[noteIdx] * 4; // 2 octaves up
+        const bell = this.ctx.createOscillator();
+        const bellGain = this.ctx.createGain();
+        bell.type = "sine";
+        bell.frequency.value = freq;
+        bellGain.gain.setValueAtTime(0.001, bt);
+        bellGain.gain.exponentialRampToValueAtTime(0.04, bt + 0.02);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, bt + 1.8);
+        bell.connect(bellGain);
+        bellGain.connect(this.masterGain);
+        bell.start(bt);
+        bell.stop(bt + 2);
+      };
+      // First bell after 3s, then every 5-9s
+      const schedule = () => {
+        playBell();
+        bellInterval = setTimeout(schedule, 5000 + Math.random() * 4000) as unknown as ReturnType<typeof setInterval>;
+      };
+      bellInterval = setTimeout(schedule, 3000) as unknown as ReturnType<typeof setInterval>;
+    }
+
     return {
       stop: () => {
         if (!this.ctx) return;
         const t = this.ctx.currentTime;
+        if (bellInterval) clearTimeout(bellInterval);
         try {
           ambientGain.gain.cancelScheduledValues(t);
           ambientGain.gain.setValueAtTime(ambientGain.gain.value, t);

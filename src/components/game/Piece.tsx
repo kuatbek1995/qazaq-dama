@@ -11,12 +11,13 @@ type Props = {
   c: number;
   selected: boolean;
   highlight: boolean;
+  urgent?: boolean;
   perspective: "white" | "black";
   cellPct: number;
   onClick: () => void;
 };
 
-export function Piece({ piece, r, c, selected, highlight, perspective, cellPct, onClick }: Props) {
+export function Piece({ piece, r, c, selected, highlight, urgent, perspective, cellPct, onClick }: Props) {
   // Position relative to board. If perspective is black, flip.
   const dispR = perspective === "white" ? r : 7 - r;
   const dispC = perspective === "white" ? c : 7 - c;
@@ -61,7 +62,8 @@ export function Piece({ piece, r, c, selected, highlight, perspective, cellPct, 
             ? "bg-[radial-gradient(circle_at_30%_25%,#fff8d0,#f0c14b_40%,#a87413_85%)] border-2 border-[#5c3c0c]"
             : "bg-[radial-gradient(circle_at_30%_25%,#5fb7d4,#00afca_35%,#003f55_80%)] border-2 border-[#001e2b]",
           selected && "ring-4 ring-[var(--gold-bright)] ring-offset-2 ring-offset-transparent shadow-[0_0_30px_8px_rgba(240,193,75,0.65)]",
-          highlight && !selected && "shadow-[0_0_18px_4px_rgba(240,193,75,0.4)]",
+          urgent && !selected && "ring-2 ring-[var(--danger)] shadow-[0_0_24px_6px_rgba(255,93,108,0.7)] animate-pulse",
+          highlight && !selected && !urgent && "shadow-[0_0_18px_4px_rgba(240,193,75,0.5)]",
         )}
       >
         {/* Inner ring detail */}
