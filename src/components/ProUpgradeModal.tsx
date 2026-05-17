@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Crown, Sparkles, X, Zap } from "lucide-react";
+import { Check, Crown, Loader2, Sparkles, X, Zap } from "lucide-react";
 
 type Props = { onClose: () => void };
 
@@ -14,12 +15,31 @@ const FEATURES = [
 ];
 
 export function ProUpgradeModal({ onClose }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/checkout", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Не удалось создать оплату");
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Что-то пошло не так");
+      setLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-      onClick={onClose}
+      onClick={loading ? undefined : onClose}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -30,7 +50,8 @@ export function ProUpgradeModal({ onClose }: Props) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+          disabled={loading}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <X className="w-4 h-4 text-ink-soft" />
         </button>
@@ -76,21 +97,39 @@ export function ProUpgradeModal({ onClose }: Props) {
         </ul>
 
         <button
-          onClick={() => {
-            alert(
-              "Pro-подписка скоро откроется! Подписывайся на наши обновления — мы напишем тебе первым.",
-            );
-            onClose();
-          }}
-          className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold flex items-center justify-center gap-2 hover:from-gold-bright hover:to-gold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02]"
+          onClick={handleCheckout}
+          disabled={loading}
+          aria-busy={loading}
+          className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold flex items-center justify-center gap-2 hover:from-gold-bright hover:to-gold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
-          <Crown className="w-4 h-4" />
-          Получить Pro
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Открываем Stripe…
+            </>
+          ) : (
+            <>
+              <Crown className="w-4 h-4" />
+              Получить Pro
+            </>
+          )}
         </button>
 
-        <p className="text-center text-xs text-ink-soft/60 mt-4">
-          В реальной версии тут будет Stripe Checkout
-        </p>
+        {error && (
+          <p className="text-center text-xs text-red-400 mt-3">{error}</p>
+        )}
+
+        {/* TODO: remove this hint after nFactorial jury demo — meant for testing only */}
+        <div className="mt-4 rounded-lg bg-blue-500/10 border border-blue-500/30 p-3">
+          <p className="text-center text-xs text-blue-200 font-semibold mb-1">
+            🧪 Тестовый режим
+          </p>
+          <p className="text-center text-[11px] text-blue-200/80 leading-relaxed">
+            Карта: <code className="font-mono text-blue-100">4242 4242 4242 4242</code>
+            <br />
+            Срок: любая будущая дата · CVC: любые 3 цифры
+          </p>
+        </div>
       </motion.div>
     </motion.div>
   );
