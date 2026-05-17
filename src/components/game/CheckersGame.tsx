@@ -23,6 +23,8 @@ import { Board } from "./Board";
 import { GameSidebar } from "./GameSidebar";
 import { EndScreen } from "./EndScreen";
 import { Menu } from "./Menu";
+import { SoundToggle } from "@/components/SoundToggle";
+import { sound } from "@/lib/sound";
 
 type Screen = "menu" | "game" | "leaderboard";
 
@@ -55,6 +57,43 @@ export function CheckersGame() {
   const [savedGame, setSavedGame] = useState<SavedGame | null>(null);
 
   const lastTickRef = useRef<number>(Date.now());
+  const prevHistoryLenRef = useRef<number>(0);
+  const winnerSoundPlayedRef = useRef<boolean>(false);
+
+  // Switch ambient when entering/leaving game
+  useEffect(() => {
+    if (screen === "game") {
+      sound.stopMenuAmbient();
+      sound.startGameAmbient();
+      return () => sound.stopGameAmbient();
+    }
+  }, [screen]);
+
+  // Move sound on every new move (player or AI)
+  useEffect(() => {
+    if (screen !== "game") {
+      prevHistoryLenRef.current = state.history.length;
+      return;
+    }
+    if (state.history.length > prevHistoryLenRef.current) {
+      const lastMove = state.history[state.history.length - 1];
+      if (lastMove?.captures?.length) sound.playCapture();
+      else sound.playMove();
+    }
+    prevHistoryLenRef.current = state.history.length;
+  }, [state.history.length, screen, state.history]);
+
+  // Victory / defeat sound
+  useEffect(() => {
+    if (!state.winner) {
+      winnerSoundPlayedRef.current = false;
+      return;
+    }
+    if (winnerSoundPlayedRef.current) return;
+    winnerSoundPlayedRef.current = true;
+    if (state.winner === yourColor) sound.playVictory();
+    else sound.playDefeat();
+  }, [state.winner, yourColor]);
 
   // Load saved game on mount
   useEffect(() => {
@@ -290,14 +329,17 @@ export function CheckersGame() {
             <ArrowLeft className="w-4 h-4" />
             В меню
           </button>
-          <button
-            onClick={resign}
-            disabled={!!state.winner}
-            className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
-          >
-            <Flag className="w-4 h-4" />
-            Сдаться
-          </button>
+          <div className="flex items-center gap-3">
+            <SoundToggle />
+            <button
+              onClick={resign}
+              disabled={!!state.winner}
+              className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
+            >
+              <Flag className="w-4 h-4" />
+              Сдаться
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">

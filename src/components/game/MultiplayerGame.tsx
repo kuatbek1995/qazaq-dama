@@ -16,6 +16,8 @@ import { GameSidebar } from "./GameSidebar";
 import { EndScreen } from "./EndScreen";
 import { ChatPanel, type ChatMessage } from "./ChatPanel";
 import { IdentityModal } from "@/components/IdentityModal";
+import { SoundToggle } from "@/components/SoundToggle";
+import { sound } from "@/lib/sound";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -52,6 +54,8 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const startedAtRef = useRef<number>(startedAt);
   const lastTickRef = useRef<number>(Date.now());
   const myIdentityRef = useRef<Identity | null>(null);
+  const prevHistoryLenRef = useRef<number>(0);
+  const winnerSoundPlayedRef = useRef<boolean>(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -65,11 +69,36 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
     myIdentityRef.current = myIdentity;
   }, [myIdentity]);
 
-  // Load identity on mount
+  // Load identity on mount + start game ambient
   useEffect(() => {
     setMyIdentity(loadIdentity());
     setIdentityLoaded(true);
+    sound.init();
+    sound.startGameAmbient();
+    return () => sound.stopGameAmbient();
   }, []);
+
+  // Move sound on every new move
+  useEffect(() => {
+    if (state.history.length > prevHistoryLenRef.current) {
+      const lastMove = state.history[state.history.length - 1];
+      if (lastMove?.captures?.length) sound.playCapture();
+      else sound.playMove();
+    }
+    prevHistoryLenRef.current = state.history.length;
+  }, [state.history.length, state.history]);
+
+  // Victory / defeat sound
+  useEffect(() => {
+    if (!state.winner || !myColor) {
+      winnerSoundPlayedRef.current = false;
+      return;
+    }
+    if (winnerSoundPlayedRef.current) return;
+    winnerSoundPlayedRef.current = true;
+    if (state.winner === myColor) sound.playVictory();
+    else sound.playDefeat();
+  }, [state.winner, myColor]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -418,14 +447,17 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             <ArrowLeft className="w-4 h-4" />
             Покинуть
           </button>
-          <button
-            onClick={resign}
-            disabled={!!state.winner}
-            className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
-          >
-            <Flag className="w-4 h-4" />
-            Сдаться
-          </button>
+          <div className="flex items-center gap-3">
+            <SoundToggle />
+            <button
+              onClick={resign}
+              disabled={!!state.winner}
+              className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
+            >
+              <Flag className="w-4 h-4" />
+              Сдаться
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">

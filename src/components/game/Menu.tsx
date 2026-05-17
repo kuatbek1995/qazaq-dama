@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import { IdentityModal } from "@/components/IdentityModal";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
+import { SoundToggle } from "@/components/SoundToggle";
+import { sound } from "@/lib/sound";
 
 type Props = {
   onStartHotseat: () => void;
@@ -33,11 +35,15 @@ export function Menu({
 
   useEffect(() => {
     setIdentity(loadIdentity());
+    sound.init();
+    sound.startMenuAmbient();
+    return () => sound.stopMenuAmbient();
   }, []);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 ornament-bg relative">
-      {/* Top-right: identity + Pro */}
+      {/* Top-right: identity + Pro + sound */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <SoundToggle />
         <button
           onClick={() => setShowIdentity(true)}
           className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border border-white/10 hover:border-gold/40 hover:bg-white/10 transition-all flex items-center gap-1.5 text-ink-soft hover:text-ink"
