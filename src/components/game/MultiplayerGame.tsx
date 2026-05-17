@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, Copy, Flag, Link2, Loader2, User } from "lucide-react";
+import { ArrowLeft, Check, Copy, Flag, Link2, Loader2 } from "lucide-react";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   applyMove,
@@ -40,8 +40,8 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [myIdentity, setMyIdentity] = useState<Identity | null>(null);
+  const [identityLoaded, setIdentityLoaded] = useState(false);
   const [opponentIdentity, setOpponentIdentity] = useState<Identity | null>(null);
-  const [showIdentityModal, setShowIdentityModal] = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const userIdRef = useRef<string>("");
@@ -66,6 +66,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   // Load identity on mount
   useEffect(() => {
     setMyIdentity(loadIdentity());
+    setIdentityLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -392,25 +393,14 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             <ArrowLeft className="w-4 h-4" />
             Покинуть
           </button>
-          <div className="flex items-center gap-3">
-            {!myIdentity && (
-              <button
-                onClick={() => setShowIdentityModal(true)}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-gold/10 border border-gold/30 hover:bg-gold/20 hover:border-gold/60 text-gold-bright transition-all"
-              >
-                <User className="w-3 h-3" />
-                Назвать себя сопернику
-              </button>
-            )}
-            <button
-              onClick={resign}
-              disabled={!!state.winner}
-              className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
-            >
-              <Flag className="w-4 h-4" />
-              Сдаться
-            </button>
-          </div>
+          <button
+            onClick={resign}
+            disabled={!!state.winner}
+            className="flex items-center gap-2 text-sm text-ink-soft hover:text-[var(--danger)] transition-colors disabled:opacity-40"
+          >
+            <Flag className="w-4 h-4" />
+            Сдаться
+          </button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
@@ -448,13 +438,12 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
             opponent="multiplayer"
           />
         )}
-        {showIdentityModal && (
+        {identityLoaded && !myIdentity && (
           <IdentityModal
-            initial={myIdentity ?? undefined}
-            onClose={() => setShowIdentityModal(false)}
+            required
+            onClose={() => {}}
             onSave={(id) => {
               setMyIdentity(id);
-              setShowIdentityModal(false);
               // Broadcast new identity to opponent immediately
               channelRef.current?.send({
                 type: "broadcast",
@@ -462,7 +451,9 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
                 payload: { userId: userIdRef.current, identity: id },
               });
             }}
-            title="Назвать себя сопернику"
+            title="Введи своё имя"
+            description="Соперник увидит твоё имя и город. После этого начнётся партия."
+            submitLabel="Начать"
           />
         )}
       </AnimatePresence>

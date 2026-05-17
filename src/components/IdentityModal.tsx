@@ -11,9 +11,20 @@ type Props = {
   onClose: () => void;
   onSave: (identity: Identity) => void;
   title?: string;
+  required?: boolean;
+  description?: string;
+  submitLabel?: string;
 };
 
-export function IdentityModal({ initial, onClose, onSave, title }: Props) {
+export function IdentityModal({
+  initial,
+  onClose,
+  onSave,
+  title,
+  required = false,
+  description,
+  submitLabel,
+}: Props) {
   const [nickname, setNickname] = useState(initial?.nickname ?? "");
   const [city, setCity] = useState<KzCity>(initial?.city ?? "Алматы");
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +46,7 @@ export function IdentityModal({ initial, onClose, onSave, title }: Props) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-      onClick={onClose}
+      onClick={required ? undefined : onClose}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -47,7 +58,7 @@ export function IdentityModal({ initial, onClose, onSave, title }: Props) {
           {title ?? "Кто ты, чемпион?"}
         </h2>
         <p className="text-ink-soft text-sm mb-6">
-          Имя и город попадут в лидерборд. Можешь сменить в любой момент.
+          {description ?? "Имя и город попадут в лидерборд. Можешь сменить в любой момент."}
         </p>
 
         <label className="block mb-4">
@@ -88,18 +99,20 @@ export function IdentityModal({ initial, onClose, onSave, title }: Props) {
         )}
 
         <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors text-sm font-medium"
-          >
-            Позже
-          </button>
+          {!required && (
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors text-sm font-medium"
+            >
+              Позже
+            </button>
+          )}
           <button
             onClick={submit}
             disabled={nickname.trim().length < 2}
             className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-gold to-gold-deep text-[#1c1206] hover:from-gold-bright hover:to-gold transition-colors text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Сохранить
+            {submitLabel ?? "Сохранить"}
           </button>
         </div>
       </motion.div>
