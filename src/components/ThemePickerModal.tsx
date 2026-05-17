@@ -12,12 +12,18 @@ type Props = {
 };
 
 export function ThemePickerModal({ onClose, isPro }: Props) {
-  const [current, setCurrent] = useState<BoardTheme>(() => loadTheme());
+  const savedTheme = loadTheme();
+  const [current, setCurrent] = useState<BoardTheme>(savedTheme);
+  const dirty = current !== savedTheme;
 
   const handlePick = (id: BoardTheme, locked: boolean) => {
     if (locked) return;
     setCurrent(id);
-    saveTheme(id);
+  };
+
+  const handleApply = () => {
+    saveTheme(current);
+    onClose();
   };
 
   return (
@@ -109,9 +115,13 @@ export function ThemePickerModal({ onClose, isPro }: Props) {
           })}
         </div>
 
-        <p className="text-center text-xs text-ink-soft/60 mt-4">
-          Тема применяется сразу и сохраняется между сессиями
-        </p>
+        <button
+          onClick={handleApply}
+          disabled={!dirty}
+          className="w-full mt-5 px-5 py-3 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
+        >
+          {dirty ? "Применить" : "Тема уже применена"}
+        </button>
       </motion.div>
     </motion.div>
   );
