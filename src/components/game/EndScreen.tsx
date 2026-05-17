@@ -72,7 +72,11 @@ export function EndScreen({
   }, [winner, youWon]);
 
   useEffect(() => {
-    if (recordedRef.current || !opponent || opponent === "hotseat") return;
+    if (recordedRef.current || !opponent) return;
+    // Only count AI matches towards the leaderboard.
+    // Hot-seat and multiplayer are excluded (multiplayer can be played
+    // with a friend who lets you win, so it'd pollute the rankings).
+    if (opponent === "hotseat" || opponent === "multiplayer") return;
     recordedRef.current = true;
     const result = isDraw ? "draw" : youWon ? "win" : "loss";
     recordScore({
@@ -155,7 +159,7 @@ export function EndScreen({
           </div>
         </div>
 
-        {identity && opponent && opponent !== "hotseat" && (
+        {identity && opponent && opponent !== "hotseat" && opponent !== "multiplayer" && (
           <div className="mb-6 text-xs text-ink-soft/70">
             Результат сохранён в лидерборд:{" "}
             <span className="text-gold">{identity.nickname}</span> ·{" "}
