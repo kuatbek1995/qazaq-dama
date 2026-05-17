@@ -20,6 +20,20 @@
   --foreground: var(--ink);
 }
 
+/* Pro board themes — applied via data-board-theme on <html> */
+[data-board-theme="yurta"] {
+  --board-light: #f0d6a8;
+  --board-dark: #7a2f12;
+}
+[data-board-theme="steppe"] {
+  --board-light: #dbe8b8;
+  --board-dark: #2d5a2c;
+}
+[data-board-theme="tengri"] {
+  --board-light: #a8c5e0;
+  --board-dark: #0e1638;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

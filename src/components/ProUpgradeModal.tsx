@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Crown, Loader2, Sparkles, X, Zap } from "lucide-react";
+import { isPro } from "@/lib/pro";
 
 type Props = { onClose: () => void };
 
@@ -17,6 +18,11 @@ const FEATURES = [
 export function ProUpgradeModal({ onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alreadyPro, setAlreadyPro] = useState(false);
+
+  useEffect(() => {
+    setAlreadyPro(isPro());
+  }, []);
 
   const handleCheckout = async () => {
     setLoading(true);
@@ -96,40 +102,52 @@ export function ProUpgradeModal({ onClose }: Props) {
           ))}
         </ul>
 
-        <button
-          onClick={handleCheckout}
-          disabled={loading}
-          aria-busy={loading}
-          className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold flex items-center justify-center gap-2 hover:from-gold-bright hover:to-gold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Открываем Stripe…
-            </>
-          ) : (
-            <>
-              <Crown className="w-4 h-4" />
-              Получить Pro
-            </>
-          )}
-        </button>
+        {alreadyPro ? (
+          <div className="w-full px-5 py-3.5 rounded-xl bg-gold/15 border border-gold/40 text-center">
+            <p className="text-gold-bright font-bold flex items-center justify-center gap-2">
+              <Crown className="w-4 h-4" fill="currentColor" fillOpacity={0.3} />
+              Ты уже Pro!
+            </p>
+            <p className="text-xs text-ink-soft mt-1">Спасибо за поддержку 🙏</p>
+          </div>
+        ) : (
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            aria-busy={loading}
+            className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-gold-bright to-gold-deep text-[#1c1206] font-bold flex items-center justify-center gap-2 hover:from-gold-bright hover:to-gold transition-all shadow-[0_10px_30px_-5px_rgba(240,193,75,0.5)] hover:shadow-[0_15px_40px_-5px_rgba(240,193,75,0.7)] hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Открываем Stripe…
+              </>
+            ) : (
+              <>
+                <Crown className="w-4 h-4" />
+                Получить Pro
+              </>
+            )}
+          </button>
+        )}
 
         {error && (
           <p className="text-center text-xs text-red-400 mt-3">{error}</p>
         )}
 
-        {/* TODO: remove this hint after nFactorial jury demo — meant for testing only */}
-        <div className="mt-4 rounded-lg bg-blue-500/10 border border-blue-500/30 p-3">
-          <p className="text-center text-xs text-blue-200 font-semibold mb-1">
-            🧪 Тестовый режим
-          </p>
-          <p className="text-center text-[11px] text-blue-200/80 leading-relaxed">
-            Карта: <code className="font-mono text-blue-100">4242 4242 4242 4242</code>
-            <br />
-            Срок: любая будущая дата · CVC: любые 3 цифры
-          </p>
-        </div>
+        {!alreadyPro && (
+          /* TODO: remove this hint after nFactorial jury demo — meant for testing only */
+          <div className="mt-4 rounded-lg bg-blue-500/10 border border-blue-500/30 p-3">
+            <p className="text-center text-xs text-blue-200 font-semibold mb-1">
+              🧪 Тестовый режим
+            </p>
+            <p className="text-center text-[11px] text-blue-200/80 leading-relaxed">
+              Карта: <code className="font-mono text-blue-100">4242 4242 4242 4242</code>
+              <br />
+              Срок: любая будущая дата · CVC: любые 3 цифры
+            </p>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );

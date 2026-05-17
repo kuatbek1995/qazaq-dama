@@ -1,14 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bot, Users, Link2, Trophy, Crown, Sparkles, Zap, Cpu, MapPin, User } from "lucide-react";
+import { Bot, Users, Link2, Trophy, Crown, Palette, Sparkles, Zap, Cpu, MapPin, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { Difficulty } from "@/lib/checkers/types";
 import { cn } from "@/lib/utils";
 import { loadIdentity, type Identity } from "@/lib/identity";
+import { applyTheme, loadProStatus, loadTheme, type ProStatus } from "@/lib/pro";
 import { IdentityModal } from "@/components/IdentityModal";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
+import { ThemePickerModal } from "@/components/ThemePickerModal";
 import { SoundToggle } from "@/components/SoundToggle";
 import { sound } from "@/lib/sound";
 
@@ -30,15 +32,21 @@ export function Menu({
   onContinue,
 }: Props) {
   const [identity, setIdentity] = useState<Identity | null>(null);
+  const [pro, setPro] = useState<ProStatus | null>(null);
   const [showIdentity, setShowIdentity] = useState(false);
   const [showPro, setShowPro] = useState(false);
+  const [showThemes, setShowThemes] = useState(false);
 
   useEffect(() => {
     setIdentity(loadIdentity());
+    setPro(loadProStatus());
+    applyTheme(loadTheme());
     sound.init();
     sound.startMenuAmbient();
     return () => sound.stopMenuAmbient();
   }, []);
+
+  const isPro = pro !== null;
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 ornament-bg relative">
       {/* Top-right: identity + Pro + sound */}
@@ -46,11 +54,17 @@ export function Menu({
         <SoundToggle />
         <button
           onClick={() => setShowIdentity(true)}
-          className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border border-white/10 hover:border-gold/40 hover:bg-white/10 transition-all flex items-center gap-1.5 text-ink-soft hover:text-ink"
+          className={cn(
+            "px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border transition-all flex items-center gap-1.5 hover:bg-white/10",
+            isPro
+              ? "border-gold/50 text-ink hover:border-gold"
+              : "border-white/10 text-ink-soft hover:border-gold/40 hover:text-ink",
+          )}
         >
+          {isPro && <Crown className="w-3 h-3 text-gold-bright" fill="currentColor" fillOpacity={0.3} />}
           {identity ? (
             <>
-              <User className="w-3 h-3" />
+              {!isPro && <User className="w-3 h-3" />}
               <span>{identity.nickname}</span>
               <span className="text-ink-soft/60">·</span>
               <MapPin className="w-3 h-3" />
@@ -58,18 +72,28 @@ export function Menu({
             </>
           ) : (
             <>
-              <User className="w-3 h-3" />
+              {!isPro && <User className="w-3 h-3" />}
               Назваться
             </>
           )}
         </button>
-        <button
-          onClick={() => setShowPro(true)}
-          className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] hover:from-gold hover:to-gold-deep transition-all flex items-center gap-1.5 shadow-[0_4px_14px_-2px_rgba(240,193,75,0.5)]"
-        >
-          <Crown className="w-3 h-3" />
-          Upgrade to Pro
-        </button>
+        {isPro ? (
+          <button
+            onClick={() => setShowThemes(true)}
+            className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] hover:from-gold hover:to-gold-deep transition-all flex items-center gap-1.5 shadow-[0_4px_14px_-2px_rgba(240,193,75,0.5)]"
+          >
+            <Palette className="w-3 h-3" />
+            Темы
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowPro(true)}
+            className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] hover:from-gold hover:to-gold-deep transition-all flex items-center gap-1.5 shadow-[0_4px_14px_-2px_rgba(240,193,75,0.5)]"
+          >
+            <Crown className="w-3 h-3" />
+            Upgrade to Pro
+          </button>
+        )}
       </div>
 
       <motion.div
@@ -166,6 +190,9 @@ export function Menu({
           />
         )}
         {showPro && <ProUpgradeModal onClose={() => setShowPro(false)} />}
+        {showThemes && (
+          <ThemePickerModal isPro={isPro} onClose={() => setShowThemes(false)} />
+        )}
       </AnimatePresence>
     </div>
   );
