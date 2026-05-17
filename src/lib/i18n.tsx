@@ -42,7 +42,7 @@ const en: Dict = {
   "menu.profile.language": "Language",
   "menu.profile.identity": "Name & city",
   "menu.profile.logout": "Log out",
-  "menu.profile.logout.confirm": "Clear your name and city from this device?",
+  "menu.profile.logout.confirm": "Log out and wipe all profile data from this device (name, Pro, theme, language)?",
 
   // Menu — hero
   "menu.subtitle": "Next-gen checkers. From Kazakhstan to the world.",
@@ -230,7 +230,7 @@ const ru: Dict = {
   "menu.profile.language": "Язык",
   "menu.profile.identity": "Имя и город",
   "menu.profile.logout": "Выйти из игры",
-  "menu.profile.logout.confirm": "Очистить имя и город на этом устройстве?",
+  "menu.profile.logout.confirm": "Выйти и очистить все данные профиля с этого устройства (имя, Pro, тема, язык)?",
 
   "menu.subtitle": "Шашки нового поколения. Қазақстаннан әлемге.",
   "menu.subline": "3-минутные дуэли · Игра с ИИ · Мультиплеер по ссылке · Лидерборд городов",
@@ -406,7 +406,7 @@ const kk: Dict = {
   "menu.profile.language": "Тіл",
   "menu.profile.identity": "Аты мен қала",
   "menu.profile.logout": "Шығу",
-  "menu.profile.logout.confirm": "Бұл құрылғыдағы атыңды және қалаңды өшірейік пе?",
+  "menu.profile.logout.confirm": "Шығып, осы құрылғыдан барлық профиль деректерін өшірейік пе (аты, Pro, тақырып, тіл)?",
 
   "menu.subtitle": "Жаңа буын дойбысы. Қазақстаннан әлемге.",
   "menu.subline": "3 минуттық дуэль · ЖИ-мен ойын · Сілтеме арқылы ойын · Қалалар рейтингі",

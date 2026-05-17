@@ -59,7 +59,12 @@ export function Menu({
   const handleLogout = () => {
     if (!confirm(t("menu.profile.logout.confirm"))) return;
     try {
+      // Full wipe — the next person on this device starts as a brand-new user.
       localStorage.removeItem("qazaq-dama:identity-v1");
+      localStorage.removeItem("qazaq-dama:pro-v1");
+      localStorage.removeItem("qazaq-dama:board-theme-v1");
+      localStorage.removeItem("qazaq-dama:locale-v1");
+      localStorage.removeItem("qazaq-dama:locale-picked-v1");
     } catch {
       // ignore
     }
