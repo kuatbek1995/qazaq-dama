@@ -14,6 +14,7 @@ import type { Color, Coord, GameState, Move } from "@/lib/checkers/types";
 import { Board } from "./Board";
 import { GameSidebar } from "./GameSidebar";
 import { EndScreen } from "./EndScreen";
+import { ChatPanel, type ChatMessage } from "./ChatPanel";
 import { IdentityModal } from "@/components/IdentityModal";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -42,6 +43,7 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
   const [myIdentity, setMyIdentity] = useState<Identity | null>(null);
   const [identityLoaded, setIdentityLoaded] = useState(false);
   const [opponentIdentity, setOpponentIdentity] = useState<Identity | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const userIdRef = useRef<string>("");
@@ -157,6 +159,15 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
           setOpponentIdentity(payload.identity as Identity);
         }
       })
+      .on("broadcast", { event: "chat" }, ({ payload }) => {
+        if (payload?.userId && payload.userId !== userIdRef.current && payload?.message) {
+          const m = payload.message as ChatMessage;
+          setChatMessages((prev) => [
+            ...prev,
+            { ...m, from: "opponent" },
+          ]);
+        }
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
@@ -245,6 +256,22 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
     },
     [state, selected, myColor, opponentJoined],
   );
+
+  function sendChat(payload: { text?: string; sticker?: string }) {
+    const msg: ChatMessage = {
+      id: crypto.randomUUID(),
+      from: "me",
+      text: payload.text ?? "",
+      sticker: payload.sticker,
+      timestamp: Date.now(),
+    };
+    setChatMessages((prev) => [...prev, msg]);
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "chat",
+      payload: { userId: userIdRef.current, message: msg },
+    });
+  }
 
   function copyLink() {
     navigator.clipboard.writeText(shareUrl);
@@ -422,6 +449,14 @@ export function MultiplayerGame({ matchId }: { matchId: string }) {
           />
         </div>
       </div>
+
+      {opponentJoined && !state.winner && (
+        <ChatPanel
+          messages={chatMessages}
+          onSend={sendChat}
+          opponentName={opponentIdentity?.nickname ?? "соперником"}
+        />
+      )}
 
       <AnimatePresence>
         {state.winner && myColor && (
