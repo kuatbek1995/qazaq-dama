@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bot, Crown, Trophy, User } from "lucide-react";
+import { Crown, Play, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -16,7 +16,14 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { useLocale, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-export function CupBlock() {
+type Props = {
+  // Called when user clicks the main "Play for prize" CTA. Should start an
+  // AI-Hard game (the only Cup-qualifying mode). When omitted the block falls
+  // back to a /champions link so the component stays usable on any page.
+  onPlayForCup?: () => void;
+};
+
+export function CupBlock({ onPlayForCup }: Props) {
   const t = useT();
   const { locale } = useLocale();
   const champion = getCurrentChampion();
@@ -57,6 +64,12 @@ export function CupBlock() {
     if (idx === -1) return { rank: 0, points: 0, total: rows.length };
     return { rank: idx + 1, points: rows[idx].points, total: rows.length };
   })();
+
+  // When there's no data at all, collapse the two standings rows into a single
+  // "be the first" empty-state pitch so the block stays compact for first-time
+  // visitors (the most common case at launch).
+  const hasAnyStandings =
+    rows !== null && (leader !== null || (myStanding && myStanding.rank > 0));
 
   return (
     <motion.div
@@ -99,97 +112,101 @@ export function CupBlock() {
         </Link>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-gold font-bold mb-1">
-            {t("cup.prize.label")}
-          </div>
-          <div className="font-display text-xl md:text-2xl font-bold text-ink leading-tight mb-1">
+        <div className="flex-1 min-w-0 w-full">
+          <div className="font-display text-xl md:text-2xl font-bold text-ink leading-tight">
             {champion.name[locale]}
           </div>
-          <div className="text-xs text-gold-bright mb-1">
-            {t("cup.prize.meeting")}
-          </div>
-          <div className="text-xs text-ink-soft/80 mb-3">
+          <div className="text-xs text-ink-soft/80 mt-0.5 mb-2.5">
             {champion.title[locale]}
           </div>
-
-          {/* Standings strip */}
-          <div className="space-y-1 mb-3 text-xs">
-            <StandingsRow
-              icon={<Trophy className="w-3 h-3 text-gold-bright" />}
-              label={t("cup.leader.label")}
-              value={
-                rows === null
-                  ? <span className="text-ink-soft/60">…</span>
-                  : leader
-                  ? <span className="text-ink">
-                      {leader.nickname} · <span className="text-ink-soft">{leader.city}</span> · <span className="text-gold-bright font-bold">{leader.points} {t("champions.points.suffix")}</span>
-                    </span>
-                  : <span className="text-ink-soft/70 italic">{t("cup.leader.empty")}</span>
-              }
-            />
-            <StandingsRow
-              icon={<User className="w-3 h-3 text-kz-blue" />}
-              label={t("cup.myStanding.label")}
-              value={
-                !identity
-                  ? <span className="text-ink-soft/70 italic">{t("cup.identityRequired")}</span>
-                  : myStanding === null
-                  ? <span className="text-ink-soft/60">…</span>
-                  : myStanding.rank > 0
-                  ? <span className="text-ink">
-                      {t("cup.myStanding.ranked", {
-                        rank: myStanding.rank,
-                        total: myStanding.total,
-                        points: myStanding.points,
-                      })}
-                    </span>
-                  : <span className="text-ink-soft/70 italic">{t("cup.myStanding.empty")}</span>
-              }
-            />
+          {/* Gold prize pill — replaces the redundant "Главный приз сезона"
+              label + champion meeting line. One pill says it all. */}
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 rounded-full bg-gold/20 border border-gold/40 text-[11px] font-semibold text-gold-bright">
+            <Trophy className="w-3 h-3" />
+            {t("cup.prize.meeting")}
           </div>
 
-          {/* How-to-earn — the load-bearing CTA explaining the rules */}
-          <div className="mb-3 px-3 py-2.5 rounded-xl border border-kz-blue/30 bg-kz-blue/5">
-            <div className="flex items-start gap-2.5">
-              <Bot className="w-4 h-4 text-kz-blue flex-shrink-0 mt-0.5" />
-              <div className="text-xs leading-snug">
-                <div className="font-semibold text-kz-blue mb-0.5">
-                  {t("cup.howTo.title")}
+          {/* Standings — only shown when we actually have data. */}
+          {hasAnyStandings && (
+            <div className="space-y-1 mb-4 text-xs">
+              {leader && (
+                <div className="flex items-center gap-2 min-w-0">
+                  <Trophy className="w-3 h-3 text-gold-bright flex-shrink-0" />
+                  <span className="text-ink-soft/80 flex-shrink-0">
+                    {t("cup.leader.label")}:
+                  </span>
+                  <span className="truncate min-w-0 text-ink">
+                    {leader.nickname} ·{" "}
+                    <span className="text-ink-soft">{leader.city}</span> ·{" "}
+                    <span className="text-gold-bright font-bold">
+                      {leader.points} {t("champions.points.suffix")}
+                    </span>
+                  </span>
                 </div>
-                <div className="text-ink-soft/90">{t("cup.howTo.body")}</div>
-              </div>
+              )}
+              {myStanding && myStanding.rank > 0 && (
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-3 h-3 text-kz-blue flex-shrink-0 flex items-center justify-center text-[10px]">
+                    ★
+                  </span>
+                  <span className="text-ink-soft/80 flex-shrink-0">
+                    {t("cup.myStanding.label")}:
+                  </span>
+                  <span className="truncate min-w-0 text-ink">
+                    {t("cup.myStanding.ranked", {
+                      rank: myStanding.rank,
+                      total: myStanding.total,
+                      points: myStanding.points,
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
+          )}
+
+          {/* Big CTA — the load-bearing button. Falls back to /champions link
+              when no onPlayForCup is wired (e.g. embedded outside the menu). */}
+          {onPlayForCup ? (
+            <motion.button
+              onClick={onPlayForCup}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-gold-bright via-gold to-gold-deep text-[#1c1206] font-bold text-sm md:text-base shadow-[0_8px_24px_-6px_rgba(240,193,75,0.6)] hover:shadow-[0_10px_30px_-6px_rgba(240,193,75,0.75)] transition-shadow"
+            >
+              <Play className="w-4 h-4" fill="currentColor" />
+              {t("cup.btn.playForPrize")}
+            </motion.button>
+          ) : (
+            <Link
+              href="/champions"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-gold-bright via-gold to-gold-deep text-[#1c1206] font-bold text-sm md:text-base shadow-[0_8px_24px_-6px_rgba(240,193,75,0.6)] hover:shadow-[0_10px_30px_-6px_rgba(240,193,75,0.75)] transition-shadow"
+            >
+              <Play className="w-4 h-4" fill="currentColor" />
+              {t("cup.btn.playForPrize")}
+            </Link>
+          )}
+
+          {/* Sub-hint row: rules summary + secondary link */}
+          <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-ink-soft/70 flex-wrap">
+            <span className="leading-relaxed">{t("cup.btn.subHint")}</span>
+            <Link
+              href="/champions"
+              className="flex-shrink-0 font-semibold text-kz-blue hover:text-kz-blue/80 transition-colors"
+            >
+              {t("cup.btn.viewAll")}
+            </Link>
           </div>
 
-          {/* CTA */}
-          <Link
-            href="/champions"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-kz-blue hover:text-kz-blue/80 transition-colors"
-          >
-            {t("cup.btn.viewAll")}
-          </Link>
+          {/* Standalone "set name" nudge when applicable. Stays out of the
+              standings row so it doesn't compete with the big CTA visually. */}
+          {!identity && (
+            <div className="mt-3 text-[11px] text-ink-soft/60 italic">
+              {t("cup.identityRequired")}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
-  );
-}
-
-function StandingsRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-2 min-w-0">
-      <span className="flex-shrink-0">{icon}</span>
-      <span className="text-ink-soft/80 flex-shrink-0">{label}:</span>
-      <span className="truncate min-w-0">{value}</span>
-    </div>
   );
 }
 

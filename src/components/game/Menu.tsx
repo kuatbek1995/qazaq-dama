@@ -267,7 +267,7 @@ export function Menu({
         </motion.button>
       )}
 
-      <CupBlock />
+      <CupBlock onPlayForCup={() => onStartAI("hard")} />
 
       <motion.div
         initial="hidden"

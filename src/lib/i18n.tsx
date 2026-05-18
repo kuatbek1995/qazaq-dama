@@ -45,8 +45,8 @@ const en: Dict = {
   "menu.profile.logout.confirm": "Log out and wipe all profile data from this device (name, Pro, theme, language)?",
 
   // Menu — hero
-  "menu.subtitle": "Next-gen checkers. From Kazakhstan to the world.",
-  "menu.subline": "3-minute duels · vs AI · Online multiplayer · City leaderboard",
+  "menu.subtitle": "Beat the AI — meet a chess champion of Kazakhstan",
+  "menu.subline": "Champions Cup · 6 legends · Main prize — personal meeting",
   "menu.continueSaved": "Continue saved game",
   "menu.footer.made": "Made in Kazakhstan",
   "menu.footer.incubator": "Specially for nFactorial Incubator · 2026",
@@ -239,6 +239,8 @@ const en: Dict = {
   "cup.identityRequired": "Set your name via the profile in the top-right to start earning points",
   "cup.howTo.title": "How to earn points",
   "cup.howTo.body": "Beat the Hard AI below — 1 win = 1 Cup point. Match must last at least 8 moves and 30 seconds.",
+  "cup.btn.playForPrize": "Play for the prize",
+  "cup.btn.subHint": "Hard AI · 1 win = 1 point · min. 8 moves, 30 sec",
   "cup.btn.play": "Play for the prize →",
   "cup.btn.viewAll": "All champions →",
 
@@ -290,8 +292,8 @@ const ru: Dict = {
   "menu.profile.logout": "Выйти из игры",
   "menu.profile.logout.confirm": "Выйти и очистить все данные профиля с этого устройства (имя, Pro, тема, язык)?",
 
-  "menu.subtitle": "Шашки нового поколения. Қазақстаннан әлемге.",
-  "menu.subline": "3-минутные дуэли · Игра с ИИ · Мультиплеер по ссылке · Лидерборд городов",
+  "menu.subtitle": "Победи ИИ — встреться с чемпионом Казахстана",
+  "menu.subline": "Кубок Чемпионов · 6 шахматных легенд · Главный приз — личная встреча",
   "menu.continueSaved": "Продолжить сохранённую партию",
   "menu.footer.made": "Сделано в Казахстане",
   "menu.footer.incubator": "Специально для nFactorial Incubator · 2026",
@@ -473,6 +475,8 @@ const ru: Dict = {
   "cup.identityRequired": "Назовись через профиль в правом верхнем углу, чтобы копить очки",
   "cup.howTo.title": "Как набрать очки",
   "cup.howTo.body": "Побеждай ИИ на Сложном уровне — 1 победа = 1 очко в Кубке. Партия должна длиться минимум 8 ходов и 30 секунд.",
+  "cup.btn.playForPrize": "Играть за приз",
+  "cup.btn.subHint": "ИИ Сложный · 1 победа = 1 очко · мин. 8 ходов, 30 сек",
   "cup.btn.play": "Играть за приз →",
   "cup.btn.viewAll": "Все чемпионы →",
 
@@ -524,8 +528,8 @@ const kk: Dict = {
   "menu.profile.logout": "Шығу",
   "menu.profile.logout.confirm": "Шығып, осы құрылғыдан барлық профиль деректерін өшірейік пе (аты, Pro, тақырып, тіл)?",
 
-  "menu.subtitle": "Жаңа буын дойбысы. Қазақстаннан әлемге.",
-  "menu.subline": "3 минуттық дуэль · ЖИ-мен ойын · Сілтеме арқылы ойын · Қалалар рейтингі",
+  "menu.subtitle": "ЖИ-ні жең — Қазақстан чемпионымен кездес",
+  "menu.subline": "Чемпиондар кубогы · 6 шахмат аңызы · Басты жүлде — жеке кездесу",
   "menu.continueSaved": "Сақталған ойынды жалғастыру",
   "menu.footer.made": "Қазақстанда жасалған",
   "menu.footer.incubator": "nFactorial Incubator үшін арнайы · 2026",
@@ -707,6 +711,8 @@ const kk: Dict = {
   "cup.identityRequired": "Кубок ұпайын жинау үшін жоғарыдағы профиль белгісінен атыңды енгіз",
   "cup.howTo.title": "Ұпайды қалай жинау",
   "cup.howTo.body": "ЖИ-мен Қиын деңгейде ойнап жең — 1 жеңіс = Кубокта 1 ұпай. Партия кемінде 8 жүріс және 30 секундке созылуы керек.",
+  "cup.btn.playForPrize": "Жүлде үшін ойнау",
+  "cup.btn.subHint": "ЖИ Қиын · 1 жеңіс = 1 ұпай · мин. 8 жүріс, 30 сек",
   "cup.btn.play": "Жүлде үшін ойнау →",
   "cup.btn.viewAll": "Барлық чемпиондар →",
 
