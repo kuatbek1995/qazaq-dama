@@ -237,6 +237,36 @@ export function daysLeftInSeason(): number {
 }
 
 /**
+ * Last calendar day of the current season, formatted for the given locale.
+ * E.g. "May 31" / "31 мая" / "31 мамыр".
+ * Used to anchor the Cup goal copy with a concrete deadline.
+ */
+export function getSeasonEndDateLabel(locale: Locale): string {
+  const now = new Date();
+  // Day 0 of next month = last day of current month.
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const day = lastDay.getDate();
+  const monthIdx = lastDay.getMonth(); // 0-indexed
+  const monthsByLocale: Record<Locale, string[]> = {
+    en: [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ],
+    ru: [
+      "января", "февраля", "марта", "апреля", "мая", "июня",
+      "июля", "августа", "сентября", "октября", "ноября", "декабря",
+    ],
+    kk: [
+      "қаңтар", "ақпан", "наурыз", "сәуір", "мамыр", "маусым",
+      "шілде", "тамыз", "қыркүйек", "қазан", "қараша", "желтоқсан",
+    ],
+  };
+  const month = monthsByLocale[locale][monthIdx];
+  // Per-locale ordering: "May 31" in EN; "31 мая" / "31 мамыр" elsewhere.
+  return locale === "en" ? `${month} ${day}` : `${day} ${month}`;
+}
+
+/**
  * Human-readable season label per locale, e.g. "May 2026" / "Май 2026" / "Мамыр 2026".
  */
 export function formatSeason(season: string, locale: Locale): string {

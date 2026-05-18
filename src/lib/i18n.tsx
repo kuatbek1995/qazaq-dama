@@ -243,6 +243,11 @@ const en: Dict = {
   "cup.btn.subHint": "Hard AI · 1 win = 1 point · min. 8 moves, 30 sec",
   "cup.btn.play": "Play for the prize →",
   "cup.btn.viewAll": "All champions →",
+  "cup.goal.label": "Goal",
+  "cup.goal.empty": "Be the first — score more than anyone else by {date}.",
+  "cup.goal.toBeat": "Beat the leader — score more than {points} pts by {date}.",
+  "cup.goal.chasing": "{gap} pt(s) behind the leader ({leaderPoints} pts). Stay on top by {date}.",
+  "cup.goal.holding": "You're #1 with {points} pt(s). Hold the lead until {date} to win.",
 
   // Champions page
   "champions.title": "Champions of Kazakhstan",
@@ -479,6 +484,11 @@ const ru: Dict = {
   "cup.btn.subHint": "ИИ Сложный · 1 победа = 1 очко · мин. 8 ходов, 30 сек",
   "cup.btn.play": "Играть за приз →",
   "cup.btn.viewAll": "Все чемпионы →",
+  "cup.goal.label": "Цель",
+  "cup.goal.empty": "Стань первым — набери больше всех очков до {date}.",
+  "cup.goal.toBeat": "Обогни лидера — набери больше {points} очк. до {date}.",
+  "cup.goal.chasing": "До 1-го места: {gap} очк. (у лидера {leaderPoints}). Удержи лидерство до {date}.",
+  "cup.goal.holding": "Ты #1 с {points} очк. Удержи лидерство до {date} — приз твой.",
 
   // Champions page
   "champions.title": "Чемпионы Казахстана",
@@ -715,6 +725,11 @@ const kk: Dict = {
   "cup.btn.subHint": "ЖИ Қиын · 1 жеңіс = 1 ұпай · мин. 8 жүріс, 30 сек",
   "cup.btn.play": "Жүлде үшін ойнау →",
   "cup.btn.viewAll": "Барлық чемпиондар →",
+  "cup.goal.label": "Мақсат",
+  "cup.goal.empty": "Бірінші бол — {date} дейін бәрінен көп ұпай жина.",
+  "cup.goal.toBeat": "Көшбасшыдан асып түс — {date} дейін {points} ұпайдан көп жина.",
+  "cup.goal.chasing": "1-орынға дейін: {gap} ұпай (көшбасшыда {leaderPoints}). {date} дейін көшбасшылықты ұста.",
+  "cup.goal.holding": "Сен #1 — {points} ұпай. {date} дейін көшбасшылықты ұста — жүлде сенікі.",
 
   // Champions page
   "champions.title": "Қазақстан чемпиондары",

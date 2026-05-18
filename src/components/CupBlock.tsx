@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Crown, Play, Trophy } from "lucide-react";
+import { Crown, Play, Target, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -9,6 +9,7 @@ import {
   formatSeason,
   getCurrentChampion,
   getCurrentSeason,
+  getSeasonEndDateLabel,
 } from "@/lib/champions";
 import { fetchCupLeaderboard, type CupLeaderboardRow } from "@/lib/cup-scores";
 import { loadIdentity, type Identity } from "@/lib/identity";
@@ -71,6 +72,31 @@ export function CupBlock({ onPlayForCup }: Props) {
   const hasAnyStandings =
     rows !== null && (leader !== null || (myStanding && myStanding.rank > 0));
 
+  const seasonEnd = getSeasonEndDateLabel(locale);
+
+  // Goal message — the load-bearing answer to "сколько очков надо?".
+  // Resolves to one of four states based on whether the user is the leader,
+  // is chasing the leader, is unranked, or there's no leader yet.
+  const goalText = (() => {
+    if (rows === null) return null; // loading — don't flash an empty answer
+    if (!leader) {
+      return t("cup.goal.empty", { date: seasonEnd });
+    }
+    if (identity && myStanding && myStanding.rank === 1) {
+      return t("cup.goal.holding", { date: seasonEnd, points: myStanding.points });
+    }
+    if (identity && myStanding && myStanding.rank > 1) {
+      const gap = leader.points - myStanding.points + 1;
+      return t("cup.goal.chasing", {
+        gap,
+        leaderPoints: leader.points,
+        date: seasonEnd,
+      });
+    }
+    // No identity, or identity but no record yet
+    return t("cup.goal.toBeat", { points: leader.points, date: seasonEnd });
+  })();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -121,10 +147,25 @@ export function CupBlock({ onPlayForCup }: Props) {
           </div>
           {/* Gold prize pill — replaces the redundant "Главный приз сезона"
               label + champion meeting line. One pill says it all. */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 rounded-full bg-gold/20 border border-gold/40 text-[11px] font-semibold text-gold-bright">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-3 rounded-full bg-gold/20 border border-gold/40 text-[11px] font-semibold text-gold-bright">
             <Trophy className="w-3 h-3" />
             {t("cup.prize.meeting")}
           </div>
+
+          {/* Goal — the load-bearing "сколько очков нужно" answer.
+              Dynamically reflects the user's chase, the leader to beat, or
+              the empty-state pitch when nobody has scored yet. */}
+          {goalText && (
+            <div className="mb-4 px-3 py-2.5 rounded-xl border border-kz-blue/30 bg-kz-blue/5 flex items-start gap-2.5">
+              <Target className="w-4 h-4 text-kz-blue flex-shrink-0 mt-0.5" />
+              <div className="text-xs leading-snug">
+                <div className="font-semibold text-kz-blue mb-0.5">
+                  {t("cup.goal.label")}
+                </div>
+                <div className="text-ink/90">{goalText}</div>
+              </div>
+            </div>
+          )}
 
           {/* Standings — only shown when we actually have data. */}
           {hasAnyStandings && (
