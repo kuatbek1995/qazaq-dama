@@ -14,6 +14,7 @@ import confetti from "canvas-confetti";
 import type { Color, Move } from "@/lib/checkers/types";
 import { recordScore, type ScoreOpponent } from "@/lib/scores";
 import { recordCupWin } from "@/lib/cup-scores";
+import { formatSeason, getCurrentSeason } from "@/lib/champions";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import { useLocale, useT } from "@/lib/i18n";
 
@@ -91,8 +92,8 @@ export function EndScreen({
       }).catch(() => {});
     }
 
-    // Champions Cup: every winning match earns points, including hot-seat
-    // and multiplayer. Losses and draws don't earn cup points.
+    // Champions Cup: only Hard-AI wins count. recordCupWin internally filters
+    // non-Hard modes, so the check below is purely about win + anti-farm.
     // Minimum thresholds prevent trivial farming (insta-surrender, etc.):
     // a real checkers match takes well over 8 moves and 30 seconds.
     if (result === "win" && moves >= 8 && durationSec >= 30) {
@@ -171,6 +172,16 @@ export function EndScreen({
             </div>
           </div>
         </div>
+
+        <CupFeedback
+          youWon={youWon}
+          opponent={opponent}
+          moves={moves}
+          durationSec={durationSec}
+          identity={identity}
+          locale={locale}
+          t={t}
+        />
 
         {identity && opponent && opponent !== "hotseat" && opponent !== "multiplayer" && (
           <div className="mb-6 text-xs text-ink-soft/70">
@@ -267,5 +278,74 @@ export function EndScreen({
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function CupFeedback({
+  youWon,
+  opponent,
+  moves,
+  durationSec,
+  identity,
+  locale,
+  t,
+}: {
+  youWon: boolean;
+  opponent: ScoreOpponent | undefined;
+  moves: number;
+  durationSec: number;
+  identity: Identity | null;
+  locale: "en" | "ru" | "kk";
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}) {
+  // Win-only feedback — losses/draws aren't cup-eligible regardless of mode.
+  if (!youWon || !opponent) return null;
+  // Hot-seat and multiplayer are excluded from cup entirely; no UI noise either.
+  if (opponent === "hotseat" || opponent === "multiplayer") return null;
+
+  const season = formatSeason(getCurrentSeason(), locale);
+
+  if (opponent === "ai-hard") {
+    const qualifies = moves >= 8 && durationSec >= 30;
+    if (qualifies && identity) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 220, damping: 18 }}
+          className="mb-4 px-4 py-3 rounded-xl border border-gold/50 bg-gradient-to-r from-gold/25 via-gold/10 to-gold/5 shadow-[0_4px_16px_-4px_rgba(240,193,75,0.4)] flex items-center gap-3"
+        >
+          <Trophy className="w-5 h-5 text-gold-bright flex-shrink-0" />
+          <div className="text-left min-w-0 flex-1">
+            <div className="text-sm font-bold text-gold-bright">
+              {t("end.cup.earned.title")}
+            </div>
+            <div className="text-[11px] text-ink-soft truncate">
+              {t("end.cup.earned.sub", { season })}
+            </div>
+          </div>
+        </motion.div>
+      );
+    }
+    if (!identity) {
+      return (
+        <div className="mb-4 px-3 py-2 rounded-lg border border-kz-blue/30 bg-kz-blue/5 text-xs text-ink-soft text-center">
+          {t("end.cup.needIdentity")}
+        </div>
+      );
+    }
+    // Won but too short — anti-farm
+    return (
+      <div className="mb-4 px-3 py-2 rounded-lg border border-white/10 bg-white/[0.03] text-xs text-ink-soft/80 text-center">
+        {t("end.cup.tooShort")}
+      </div>
+    );
+  }
+
+  // Won AI Easy / Medium — nudge towards Hard for cup points
+  return (
+    <div className="mb-4 px-3 py-2 rounded-lg border border-kz-blue/25 bg-kz-blue/5 text-xs text-ink-soft text-center">
+      💡 {t("end.cup.playHard")}
+    </div>
   );
 }

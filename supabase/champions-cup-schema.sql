@@ -1,27 +1,27 @@
--- Champions Cup — отдельная таблица для очков турнира.
+-- Champions Cup — таблица очков турнира.
 -- Скопируй и выполни этот SQL в Supabase Dashboard:
 -- Project → SQL Editor → New query → вставь → Run.
 --
 -- Эта таблица НЕ заменяет `scores` (city leaderboard).
--- `scores` — для городского лидерборда (только vs AI, без hot-seat/multiplayer).
--- `cup_scores` — для Champions Cup (ВСЕ режимы, включая hot-seat/multiplayer).
+-- `scores` — для городского лидерборда.
+-- `cup_scores` — для Champions Cup.
+--
+-- Правила Кубка (v2): очки начисляются ТОЛЬКО за победу над ИИ Сложный.
+-- 1 победа = 1 очко. Hot-seat / ИИ Лёгкий / Средний / Мультиплеер очков не дают
+-- (легко зафармить с другом или ИИ-Лёгким). Должно совпадать с CUP_POINTS
+-- в src/lib/cup-scores.ts.
 
 create table if not exists public.cup_scores (
   id uuid primary key default gen_random_uuid(),
   nickname text not null check (length(nickname) between 2 and 20),
   city text not null check (length(city) between 2 and 50),
-  mode text not null check (mode in ('hotseat', 'ai-easy', 'ai-medium', 'ai-hard', 'multiplayer')),
+  mode text not null check (mode = 'ai-hard'),
   points int not null,
   season text not null check (season ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
   created_at timestamptz not null default now(),
   -- Bind points to mode so a tampered client cannot post inflated scores.
-  -- Must mirror CUP_POINTS in src/lib/cup-scores.ts.
   constraint cup_scores_points_match_mode check (
-    (mode = 'hotseat' and points = 1)
-    or (mode = 'ai-easy' and points = 1)
-    or (mode = 'ai-medium' and points = 1)
-    or (mode = 'ai-hard' and points = 2)
-    or (mode = 'multiplayer' and points = 3)
+    mode = 'ai-hard' and points = 1
   )
 );
 

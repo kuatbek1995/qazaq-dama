@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Crown, ExternalLink, MapPin, Trophy, User } from "lucide-react";
+import { ArrowLeft, Bot, Crown, ExternalLink, MapPin, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -134,12 +134,27 @@ export function ChampionsView() {
           <h2 className="font-display text-lg font-semibold text-ink mb-3">
             {t("champions.points.title")}
           </h2>
-          <div className="space-y-1.5 text-sm">
-            <PointRow label={t("champions.points.hotseat")} points={CUP_POINTS.hotseat} suffix={t("champions.points.suffix")} />
-            <PointRow label={t("champions.points.aiEasy")} points={CUP_POINTS["ai-easy"]} suffix={t("champions.points.suffix")} />
-            <PointRow label={t("champions.points.aiMedium")} points={CUP_POINTS["ai-medium"]} suffix={t("champions.points.suffix")} />
-            <PointRow label={t("champions.points.aiHard")} points={CUP_POINTS["ai-hard"]} suffix={t("champions.points.suffix")} />
-            <PointRow label={t("champions.points.multi")} points={CUP_POINTS.multiplayer} suffix={t("champions.points.suffix")} highlight />
+          <div className="space-y-2.5">
+            <div className="px-3.5 py-3 rounded-xl bg-gold/15 border border-gold/30 flex items-center gap-3">
+              <Bot className="w-5 h-5 text-gold-bright flex-shrink-0" />
+              <div className="text-sm flex-1 min-w-0">
+                <div className="text-ink font-semibold leading-tight">
+                  {t("champions.points.aiHard")}
+                </div>
+                <div className="text-[11px] text-ink-soft/80 mt-0.5">
+                  {t("champions.points.aiHard.desc")}
+                </div>
+              </div>
+              <div className="font-bold tabular-nums text-gold-bright text-base flex-shrink-0">
+                ×{CUP_POINTS["ai-hard"]} {t("champions.points.suffix")}
+              </div>
+            </div>
+            <div className="text-[11px] text-ink-soft/70 px-1 leading-relaxed">
+              {t("champions.points.antiFarm")}
+            </div>
+            <div className="text-[11px] text-ink-soft/60 px-1 leading-relaxed">
+              {t("champions.points.excluded")}
+            </div>
           </div>
         </motion.div>
       </div>
@@ -344,37 +359,6 @@ function ChampionAvatar({
         fill="currentColor"
         fillOpacity={0.3}
       />
-    </div>
-  );
-}
-
-function PointRow({
-  label,
-  points,
-  suffix,
-  highlight,
-}: {
-  label: string;
-  points: number;
-  suffix: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-between px-3 py-2 rounded-lg",
-        highlight ? "bg-gold/15 border border-gold/30" : "bg-white/[0.03]",
-      )}
-    >
-      <span className={cn("text-ink", highlight && "font-semibold")}>{label}</span>
-      <span
-        className={cn(
-          "font-bold tabular-nums",
-          highlight ? "text-gold-bright" : "text-ink-soft",
-        )}
-      >
-        ×{points} {suffix}
-      </span>
     </div>
   );
 }

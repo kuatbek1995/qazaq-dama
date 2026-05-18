@@ -3,10 +3,10 @@ import { loadIdentity } from "./identity";
 import { getCurrentSeason } from "./champions";
 import type { ScoreOpponent } from "./scores";
 
-// Cup tracks every mode (including hot-seat and multiplayer), unlike the city
-// leaderboard which only counts AI matches. Reuses ScoreOpponent so the type
-// flows cleanly from EndScreen → recordCupWin without coercion.
-export type CupMode = ScoreOpponent;
+// Only Hard AI wins earn cup points. Casual modes (hot-seat, easy/medium AI,
+// multiplayer) are excluded because they can be farmed with a friend or are
+// not competitive enough to gate the season prize on.
+export type CupMode = "ai-hard";
 
 export type CupEntry = {
   id?: string;
@@ -25,25 +25,19 @@ export type CupLeaderboardRow = {
   games: number;
 };
 
-// Cup points by mode.
-//   1× — casual modes where the result is least competitive
-//        (hotseat, easy/medium AI both can be farmed)
-//   2× — Hard AI: requires real skill against minimax + alpha-beta at full depth
-//   3× — Multiplayer: a human opponent, most viral / most valuable signal
+// 1 cup point per win on Hard AI. Single mode, flat scoring — easier to
+// explain to users and judges than the previous 1×/2×/3× ladder.
 export const CUP_POINTS: Record<CupMode, number> = {
-  hotseat: 1,
-  "ai-easy": 1,
-  "ai-medium": 1,
-  "ai-hard": 2,
-  multiplayer: 3,
+  "ai-hard": 1,
 };
 
 /**
- * Records a Cup win. Called from EndScreen after any victorious match.
+ * Records a Cup win. Accepts the full ScoreOpponent so callers don't need to
+ * narrow first; non-Hard modes are silently ignored.
  * Best-effort: silently no-ops if Supabase isn't configured or the user has no identity.
- * NOTE: only winning matches earn cup points — losses and draws are intentionally skipped.
  */
-export async function recordCupWin(mode: CupMode): Promise<void> {
+export async function recordCupWin(mode: ScoreOpponent): Promise<void> {
+  if (mode !== "ai-hard") return;
   const supabase = getSupabase();
   const identity = loadIdentity();
   if (!supabase || !identity) return;

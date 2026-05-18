@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Crown, Trophy, User } from "lucide-react";
+import { Bot, Crown, Trophy, User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -114,7 +114,7 @@ export function CupBlock() {
           </div>
 
           {/* Standings strip */}
-          <div className="space-y-1 mb-4 text-xs">
+          <div className="space-y-1 mb-3 text-xs">
             <StandingsRow
               icon={<Trophy className="w-3 h-3 text-gold-bright" />}
               label={t("cup.leader.label")}
@@ -147,6 +147,19 @@ export function CupBlock() {
                   : <span className="text-ink-soft/70 italic">{t("cup.myStanding.empty")}</span>
               }
             />
+          </div>
+
+          {/* How-to-earn — the load-bearing CTA explaining the rules */}
+          <div className="mb-3 px-3 py-2.5 rounded-xl border border-kz-blue/30 bg-kz-blue/5">
+            <div className="flex items-start gap-2.5">
+              <Bot className="w-4 h-4 text-kz-blue flex-shrink-0 mt-0.5" />
+              <div className="text-xs leading-snug">
+                <div className="font-semibold text-kz-blue mb-0.5">
+                  {t("cup.howTo.title")}
+                </div>
+                <div className="text-ink-soft/90">{t("cup.howTo.body")}</div>
+              </div>
+            </div>
           </div>
 
           {/* CTA */}
