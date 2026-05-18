@@ -11,9 +11,18 @@ create table if not exists public.cup_scores (
   nickname text not null check (length(nickname) between 2 and 20),
   city text not null check (length(city) between 2 and 50),
   mode text not null check (mode in ('hotseat', 'ai-easy', 'ai-medium', 'ai-hard', 'multiplayer')),
-  points int not null check (points between 1 and 5),
-  season text not null check (length(season) = 7), -- YYYY-MM
-  created_at timestamptz not null default now()
+  points int not null,
+  season text not null check (season ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
+  created_at timestamptz not null default now(),
+  -- Bind points to mode so a tampered client cannot post inflated scores.
+  -- Must mirror CUP_POINTS in src/lib/cup-scores.ts.
+  constraint cup_scores_points_match_mode check (
+    (mode = 'hotseat' and points = 1)
+    or (mode = 'ai-easy' and points = 1)
+    or (mode = 'ai-medium' and points = 1)
+    or (mode = 'ai-hard' and points = 2)
+    or (mode = 'multiplayer' and points = 3)
+  )
 );
 
 create index if not exists cup_scores_season_idx on public.cup_scores (season);
@@ -35,6 +44,6 @@ create policy "anyone can insert cup_scores"
   with check (
     length(nickname) between 2 and 20
     and length(city) between 2 and 50
-    and length(season) = 7
-    and points between 1 and 5
+    and season ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'
+    -- mode/points pairing already enforced by table check constraint above
   );

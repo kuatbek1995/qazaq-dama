@@ -207,7 +207,7 @@ function ChampionHero({
     <div className="rounded-3xl bg-gradient-to-br from-[#1a2540] via-[#0c1729] to-[#050913] border border-gold/30 shadow-[0_20px_60px_-10px_rgba(240,193,75,0.3)] overflow-hidden">
       <div className="flex flex-col md:flex-row">
         <div className="md:w-1/3 flex-shrink-0 bg-gradient-to-br from-gold/10 to-transparent flex items-center justify-center p-6 md:p-8">
-          <ChampionAvatar champion={champion} size="xl" />
+          <ChampionAvatar champion={champion} size="xl" locale={locale} />
         </div>
         <div className="flex-1 p-6 md:p-8">
           <h3 className="font-display text-3xl md:text-4xl font-bold text-ink mb-2">
@@ -276,7 +276,7 @@ function ChampionCard({
   return (
     <div className="p-3 rounded-xl bg-white/[0.02] border border-white/10 hover:border-gold/30 transition-colors text-center">
       <div className="mb-2 flex justify-center">
-        <ChampionAvatar champion={champion} size="sm" />
+        <ChampionAvatar champion={champion} size="sm" locale={locale} />
       </div>
       <div className="text-[9px] uppercase tracking-widest text-ink-soft/70 font-bold mb-1">
         {seasonLabel}
@@ -291,9 +291,11 @@ function ChampionCard({
 function ChampionAvatar({
   champion,
   size,
+  locale,
 }: {
   champion: Champion;
   size: "sm" | "md" | "xl";
+  locale: "en" | "ru" | "kk";
 }) {
   const dims = {
     sm: "w-16 h-16 text-base",
@@ -305,7 +307,7 @@ function ChampionAvatar({
     return (
       <img
         src={champion.photo}
-        alt={champion.name.en}
+        alt={champion.name[locale]}
         loading="lazy"
         className={cn(
           "rounded-2xl object-cover ring-2 ring-gold/30 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]",
@@ -315,9 +317,11 @@ function ChampionAvatar({
     );
   }
 
-  // Stylized initials fallback. Uses Cyrillic-first initials when available.
-  const enParts = champion.name.en.split(" ");
-  const initials = enParts
+  // Stylized initials fallback. Use the current locale's name so a Cyrillic
+  // page shows Cyrillic initials, and Latin shows Latin.
+  const displayName = champion.name[locale];
+  const parts = displayName.split(" ").filter(Boolean);
+  const initials = parts
     .map((p) => p.charAt(0))
     .join("")
     .slice(0, 2)
@@ -329,7 +333,7 @@ function ChampionAvatar({
         "rounded-2xl flex items-center justify-center font-display font-bold bg-gradient-to-br from-gold-bright via-gold to-gold-deep text-[#3a2406] ring-2 ring-gold/40 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)] relative",
         dims,
       )}
-      aria-label={champion.name.en}
+      aria-label={champion.name[locale]}
     >
       <span>{initials}</span>
       <Crown

@@ -231,7 +231,7 @@ const en: Dict = {
   "cup.myStanding.ranked": "Rank #{rank} of {total} · {points} pts",
   "cup.myStanding.unranked": "{points} pts · win to climb the ranks",
   "cup.myStanding.empty": "Win a match to enter the cup",
-  "cup.identityRequired": "Set your name to start earning Cup points",
+  "cup.identityRequired": "Set your name via the profile in the top-right to start earning points",
   "cup.btn.play": "Play for the prize →",
   "cup.btn.viewAll": "All champions →",
 
@@ -455,7 +455,7 @@ const ru: Dict = {
   "cup.myStanding.ranked": "{rank}-е место из {total} · {points} очк.",
   "cup.myStanding.unranked": "{points} очк. · побеждай, чтобы подняться",
   "cup.myStanding.empty": "Сыграй и победи, чтобы войти в Кубок",
-  "cup.identityRequired": "Назовись, чтобы начать копить очки Кубка",
+  "cup.identityRequired": "Назовись через профиль в правом верхнем углу, чтобы копить очки",
   "cup.btn.play": "Играть за приз →",
   "cup.btn.viewAll": "Все чемпионы →",
 
@@ -678,8 +678,8 @@ const kk: Dict = {
   "cup.myStanding.label": "Сенің орның",
   "cup.myStanding.ranked": "{total} ішінен {rank}-орын · {points} ұпай",
   "cup.myStanding.unranked": "{points} ұпай · жоғарылау үшін жең",
-  "cup.myStanding.empty": "Кубокке кіру үшін партия жеңіп ал",
-  "cup.identityRequired": "Кубок ұпайын жинау үшін атыңды енгіз",
+  "cup.myStanding.empty": "Кубокқа кіру үшін партия жеңіп ал",
+  "cup.identityRequired": "Кубок ұпайын жинау үшін жоғарыдағы профиль белгісінен атыңды енгіз",
   "cup.btn.play": "Жүлде үшін ойнау →",
   "cup.btn.viewAll": "Барлық чемпиондар →",
 

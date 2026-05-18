@@ -93,7 +93,9 @@ export function EndScreen({
 
     // Champions Cup: every winning match earns points, including hot-seat
     // and multiplayer. Losses and draws don't earn cup points.
-    if (result === "win") {
+    // Minimum thresholds prevent trivial farming (insta-surrender, etc.):
+    // a real checkers match takes well over 8 moves and 30 seconds.
+    if (result === "win" && moves >= 8 && durationSec >= 30) {
       recordCupWin(opponent).catch(() => {});
     }
   }, [opponent, isDraw, youWon, durationSec, moves]);

@@ -94,7 +94,7 @@ export function CupBlock() {
               className="w-24 h-24 md:w-28 md:h-28 rounded-2xl object-cover ring-2 ring-gold/40 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)] group-hover:ring-gold transition-all"
             />
           ) : (
-            <FallbackAvatar name={champion.name.en} />
+            <FallbackAvatar name={champion.name[locale]} />
           )}
         </Link>
 
