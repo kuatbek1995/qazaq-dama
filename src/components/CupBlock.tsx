@@ -31,11 +31,17 @@ export function CupBlock({ onPlayForCup }: Props) {
   const season = getCurrentSeason();
   const daysLeft = daysLeftInSeason();
   const [identity, setIdentity] = useState<Identity | null>(null);
+  // Tracks whether the post-mount identity read has run. Gate the
+  // "set your name" nudge on this flag so the server render and the
+  // first client render agree (both null on hydration), then the
+  // nudge appears only after we've actually checked localStorage.
+  const [identityChecked, setIdentityChecked] = useState(false);
   const [rows, setRows] = useState<CupLeaderboardRow[] | null>(null);
   const configured = isSupabaseConfigured();
 
   useEffect(() => {
     setIdentity(loadIdentity());
+    setIdentityChecked(true);
   }, []);
 
   useEffect(() => {
@@ -239,8 +245,11 @@ export function CupBlock({ onPlayForCup }: Props) {
           </div>
 
           {/* Standalone "set name" nudge when applicable. Stays out of the
-              standings row so it doesn't compete with the big CTA visually. */}
-          {!identity && (
+              standings row so it doesn't compete with the big CTA visually.
+              Gated on identityChecked so SSR/hydration agree (both render
+              without the nudge), then the nudge appears post-mount only if
+              the user really has no identity — no flash for signed-in users. */}
+          {identityChecked && !identity && (
             <div className="mt-3 text-[11px] text-ink-soft/60 italic">
               {t("cup.identityRequired")}
             </div>

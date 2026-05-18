@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from "react";
 
-export const LOCALES = ["en", "ru", "kk"] as const;
+// Order matters — this drives the language picker render order.
+// Kazakh first (cultural priority for the product), then English, then Russian.
+export const LOCALES = ["kk", "en", "ru"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 const LOCALE_KEY = "qazaq-dama:locale-v1";
@@ -40,7 +42,8 @@ const en: Dict = {
   "menu.pro.themes": "Themes",
   "menu.profile.menu": "Profile menu",
   "menu.profile.language": "Language",
-  "menu.profile.identity": "Name & city",
+  "menu.profile.identity": "Sign in to play",
+  "menu.profile.editIdentity": "Edit name & city",
   "menu.profile.logout": "Log out",
   "menu.profile.logout.confirm": "Log out and wipe all profile data from this device (name, Pro, theme, language)?",
 
@@ -293,7 +296,8 @@ const ru: Dict = {
   "menu.pro.themes": "Темы",
   "menu.profile.menu": "Меню профиля",
   "menu.profile.language": "Язык",
-  "menu.profile.identity": "Имя и город",
+  "menu.profile.identity": "Войти в игру",
+  "menu.profile.editIdentity": "Изменить имя и город",
   "menu.profile.logout": "Выйти из игры",
   "menu.profile.logout.confirm": "Выйти и очистить все данные профиля с этого устройства (имя, Pro, тема, язык)?",
 
@@ -534,7 +538,8 @@ const kk: Dict = {
   "menu.pro.themes": "Тақырыптар",
   "menu.profile.menu": "Профиль мәзірі",
   "menu.profile.language": "Тіл",
-  "menu.profile.identity": "Аты мен қала",
+  "menu.profile.identity": "Ойынға кіру",
+  "menu.profile.editIdentity": "Атым мен қаламды өзгерту",
   "menu.profile.logout": "Шығу",
   "menu.profile.logout.confirm": "Шығып, осы құрылғыдан барлық профиль деректерін өшірейік пе (аты, Pro, тақырып, тіл)?",
 
@@ -782,7 +787,11 @@ const LangContext = createContext<LangContextValue>({
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+  // Start with the canonically first locale (currently "kk"). The picker
+  // forces a choice on first visit so this is mostly a "no preference yet"
+  // anchor; using LOCALES[0] keeps the default in sync with the visible
+  // ordering rather than hardcoding "en".
+  const [locale, setLocaleState] = useState<Locale>(LOCALES[0]);
   const [hasPicked, setHasPicked] = useState(true);
   const [ready, setReady] = useState(false);
 

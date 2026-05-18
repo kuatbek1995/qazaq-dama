@@ -21,8 +21,13 @@ class SoundManager {
     if (typeof window === "undefined") return;
     if (this.ctx) return;
     try {
-      this.muted = localStorage.getItem(MUTE_KEY) === "true";
-    } catch {}
+      // Default to MUTED on first visit. Auto-playing audio is hostile UX
+      // (and most browsers block it anyway). Users who once explicitly
+      // unmuted keep their "false" preference; everyone else starts silent.
+      this.muted = localStorage.getItem(MUTE_KEY) !== "false";
+    } catch {
+      this.muted = true;
+    }
   }
 
   private ensureCtx(): AudioContext | null {

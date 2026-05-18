@@ -43,8 +43,25 @@ export function Menu({
   const [showThemes, setShowThemes] = useState(false);
   const [showLang, setShowLang] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  // Holds an action queued behind the identity modal. When the user opens any
+  // game mode without a saved identity, we stash the action here and pop the
+  // modal; once they save (or cancel) we fire it (or drop it).
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const langWasForced = useRef(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Wrap any game-start callback so it only runs if the user has named themselves.
+  // No identity yet → open the identity modal first; the saved action will fire
+  // after they hit Save. loadIdentity() is read fresh from storage to avoid the
+  // race where state hasn't hydrated yet on first render.
+  const requireIdentity = (action: () => void) => () => {
+    if (loadIdentity()) {
+      action();
+      return;
+    }
+    setPendingAction(() => action);
+    setShowIdentity(true);
+  };
 
   useEffect(() => {
     if (!showProfile) return;
@@ -194,8 +211,10 @@ export function Menu({
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-sm border-t border-white/5"
                 >
-                  <User className="w-4 h-4 text-ink-soft" />
-                  <span className="text-ink">{t("menu.profile.identity")}</span>
+                  <User className="w-4 h-4 text-ink-soft flex-shrink-0" />
+                  <span className="text-ink truncate">
+                    {t(identity ? "menu.profile.editIdentity" : "menu.profile.identity")}
+                  </span>
                 </button>
 
                 {identity && (
@@ -267,7 +286,7 @@ export function Menu({
         </motion.button>
       )}
 
-      <CupBlock onPlayForCup={() => onStartAI("hard")} />
+      <CupBlock onPlayForCup={requireIdentity(() => onStartAI("hard"))} />
 
       <motion.div
         initial="hidden"
@@ -283,17 +302,17 @@ export function Menu({
           title={t("menu.hotseat.title")}
           desc={t("menu.hotseat.desc")}
           accent="silver"
-          onClick={onStartHotseat}
+          onClick={requireIdentity(onStartHotseat)}
         />
         <ModeCard
           icon={<Link2 className="w-6 h-6" />}
           title={t("menu.online.title")}
           desc={t("menu.online.desc")}
           accent="blue"
-          onClick={onCreateMultiplayer}
+          onClick={requireIdentity(onCreateMultiplayer)}
           badge={t("menu.online.badge")}
         />
-        <DifficultyCard onStart={onStartAI} />
+        <DifficultyCard onStart={(d) => requireIdentity(() => onStartAI(d))()} />
         <ModeCard
           icon={<Trophy className="w-6 h-6" />}
           title={t("menu.leaderboard.title")}
@@ -344,10 +363,19 @@ export function Menu({
         {showIdentity && (
           <IdentityModal
             initial={identity ?? undefined}
-            onClose={() => setShowIdentity(false)}
+            onClose={() => {
+              setShowIdentity(false);
+              // User cancelled — drop any queued game-start action
+              setPendingAction(null);
+            }}
             onSave={(id) => {
               setIdentity(id);
               setShowIdentity(false);
+              // If a game mode was waiting on identity, run it now.
+              if (pendingAction) {
+                pendingAction();
+                setPendingAction(null);
+              }
             }}
           />
         )}

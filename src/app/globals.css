@@ -52,18 +52,26 @@
   --font-display: var(--font-cormorant);
 }
 
-html, body {
-  height: 100%;
+/* Solid dark fallback on the root so the viewport-anchored body gradients
+   never expose a lighter html background during overscroll or scroll-past
+   areas. */
+html {
+  background: var(--bg-deep);
 }
 
 body {
+  /* Solid dark base + two subtle viewport-anchored radial accents (gold top-left,
+     blue bottom-right). Avoids the linear top-to-bottom gradient that creates a
+     visible "seam" between viewport-dark-top and content-darker-bottom when the
+     page scrolls past one screen height. */
   background:
-    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(240, 193, 75, 0.12), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0, 175, 202, 0.10), transparent 60%),
-    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+    radial-gradient(ellipse 80% 60% at 20% 0%, rgba(240, 193, 75, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(0, 175, 202, 0.08), transparent 60%),
+    var(--bg-deep);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  min-height: 100%;
+  min-height: 100vh;
   overflow-x: hidden;
 }
 
