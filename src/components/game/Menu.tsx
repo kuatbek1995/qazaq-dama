@@ -14,6 +14,7 @@ import { ProUpgradeModal } from "@/components/ProUpgradeModal";
 import { ThemePickerModal } from "@/components/ThemePickerModal";
 import { LanguagePickerModal } from "@/components/LanguagePickerModal";
 import { SoundToggle } from "@/components/SoundToggle";
+import { CupBlock } from "@/components/CupBlock";
 import { sound } from "@/lib/sound";
 
 type Props = {
@@ -107,7 +108,7 @@ export function Menu({
 
   const isPro = pro !== null;
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 ornament-bg relative">
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 ornament-bg relative">
       {/* Top-right: sound + profile + Pro */}
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
         <SoundToggle />
@@ -259,12 +260,14 @@ export function Menu({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           onClick={onContinue}
-          className="mb-8 px-6 py-3 rounded-full bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] text-sm font-semibold flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(240,193,75,0.6)] hover:scale-105 transition-transform"
+          className="mb-6 px-6 py-3 rounded-full bg-gradient-to-r from-gold-bright to-gold text-[#1c1206] text-sm font-semibold flex items-center gap-2 shadow-[0_10px_30px_-8px_rgba(240,193,75,0.6)] hover:scale-105 transition-transform"
         >
           <Sparkles className="w-4 h-4" />
           {t("menu.continueSaved")}
         </motion.button>
       )}
+
+      <CupBlock />
 
       <motion.div
         initial="hidden"

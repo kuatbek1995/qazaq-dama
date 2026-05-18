@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import type { Color, Move } from "@/lib/checkers/types";
 import { recordScore, type ScoreOpponent } from "@/lib/scores";
+import { recordCupWin } from "@/lib/cup-scores";
 import { loadIdentity, type Identity } from "@/lib/identity";
 import { useLocale, useT } from "@/lib/i18n";
 
@@ -76,18 +77,25 @@ export function EndScreen({
 
   useEffect(() => {
     if (recordedRef.current || !opponent) return;
-    // Only count AI matches towards the leaderboard.
-    // Hot-seat and multiplayer are excluded (multiplayer can be played
-    // with a friend who lets you win, so it'd pollute the rankings).
-    if (opponent === "hotseat" || opponent === "multiplayer") return;
     recordedRef.current = true;
     const result = isDraw ? "draw" : youWon ? "win" : "loss";
-    recordScore({
-      result,
-      opponent,
-      duration_sec: durationSec,
-      moves,
-    }).catch(() => {});
+
+    // City leaderboard: only AI matches count. Hot-seat and multiplayer
+    // can be friend-farmed so they'd pollute the city rankings.
+    if (opponent !== "hotseat" && opponent !== "multiplayer") {
+      recordScore({
+        result,
+        opponent,
+        duration_sec: durationSec,
+        moves,
+      }).catch(() => {});
+    }
+
+    // Champions Cup: every winning match earns points, including hot-seat
+    // and multiplayer. Losses and draws don't earn cup points.
+    if (result === "win") {
+      recordCupWin(opponent).catch(() => {});
+    }
   }, [opponent, isDraw, youWon, durationSec, moves]);
 
   async function requestCoach() {
